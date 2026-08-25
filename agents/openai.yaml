@@ -1,0 +1,4 @@
+interface:
+  display_name: "Chart Forge 交互图表"
+  short_description: "按表达目的选图，用校验过的配色生成好看、可交互的数据分析图表"
+  default_prompt: "使用 $chart-forge 把这份数据做成可交互的图表。"

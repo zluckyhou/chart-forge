@@ -1,0 +1,35 @@
+{
+  "type": "donut",
+  "title": "Organic search brings four in ten orders",
+  "subtitle": "Orders by first-touch source · Aug 2026 · sample data",
+  "data": {
+    "items": [
+      {
+        "name": "Organic search",
+        "value": 4820
+      },
+      {
+        "name": "Paid ads",
+        "value": 3160
+      },
+      {
+        "name": "Social",
+        "value": 2270
+      },
+      {
+        "name": "Email",
+        "value": 940
+      },
+      {
+        "name": "Other",
+        "value": 610
+      }
+    ]
+  },
+  "options": {
+    "format": "number",
+    "unit": "orders",
+    "centerLabel": "Orders",
+    "categoryLabel": "Source"
+  }
+}

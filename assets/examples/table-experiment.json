@@ -1,0 +1,129 @@
+{
+  "type": "table",
+  "title": "Only the simplified form won on both measures",
+  "subtitle": "Checkout experiment · 14 days · 5 variants · sample data",
+  "width": 900,
+  "data": {
+    "columns": [
+      {
+        "key": "variant",
+        "label": "Variant",
+        "sticky": true,
+        "sub": "owner"
+      },
+      {
+        "key": "users",
+        "label": "Users",
+        "format": "compact",
+        "muted": true
+      },
+      {
+        "key": "cvr",
+        "label": "Conversion",
+        "format": "percent",
+        "decimals": 2,
+        "group": "Result"
+      },
+      {
+        "key": "dcvr",
+        "label": "vs control",
+        "format": "percent",
+        "decimals": 2,
+        "sign": true,
+        "bar": "diverging",
+        "barGroup": "delta",
+        "group": "Result",
+        "emphasis": true
+      },
+      {
+        "key": "arpu",
+        "label": "Revenue / user",
+        "format": "currency",
+        "currency": "$",
+        "decimals": 2,
+        "group": "Money"
+      },
+      {
+        "key": "darpu",
+        "label": "vs control",
+        "format": "percent",
+        "decimals": 2,
+        "sign": true,
+        "bar": "diverging",
+        "barGroup": "delta",
+        "group": "Money"
+      },
+      {
+        "key": "verdict",
+        "label": "Verdict",
+        "tag": true
+      }
+    ],
+    "rows": [
+      {
+        "variant": "Control",
+        "owner": "—",
+        "users": 41200,
+        "cvr": 6.42,
+        "dcvr": 0,
+        "arpu": 4.18,
+        "darpu": 0,
+        "verdict": "baseline",
+        "verdict_tone": "mute"
+      },
+      {
+        "variant": "Simplified form",
+        "owner": "growth",
+        "users": 40850,
+        "cvr": 7.31,
+        "dcvr": 13.86,
+        "arpu": 4.63,
+        "darpu": 10.77,
+        "verdict": "ship",
+        "verdict_tone": "good",
+        "verdict_note": "both up"
+      },
+      {
+        "variant": "One-page checkout",
+        "owner": "growth",
+        "users": 41010,
+        "cvr": 7.02,
+        "dcvr": 9.35,
+        "arpu": 4.05,
+        "darpu": -3.11,
+        "verdict": "hold",
+        "verdict_tone": "warn",
+        "verdict_note": "smaller baskets"
+      },
+      {
+        "variant": "Trust badges",
+        "owner": "brand",
+        "users": 40990,
+        "cvr": 6.55,
+        "dcvr": 2.02,
+        "arpu": 4.21,
+        "darpu": 0.72,
+        "verdict": "inconclusive",
+        "verdict_tone": "info"
+      },
+      {
+        "variant": "Upsell step",
+        "owner": "monetisation",
+        "users": 41340,
+        "cvr": 5.88,
+        "dcvr": -8.41,
+        "arpu": 4.44,
+        "darpu": 6.22,
+        "verdict": "drop",
+        "verdict_tone": "warn",
+        "verdict_note": "conversion cost"
+      }
+    ]
+  },
+  "options": {
+    "zebra": true,
+    "sortable": true,
+    "sortBy": "dcvr",
+    "sortAsc": false
+  }
+}

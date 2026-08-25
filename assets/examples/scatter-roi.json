@@ -1,0 +1,413 @@
+{
+  "type": "scatter",
+  "title": "APAC converts spend about twice as efficiently as AMER",
+  "subtitle": "Paid campaigns this quarter · one dot per campaign · sample data",
+  "data": {
+    "points": [
+      {
+        "name": "Campaign 01",
+        "group": "EMEA",
+        "x": 18,
+        "y": 202,
+        "cac": 89.1
+      },
+      {
+        "name": "Campaign 02",
+        "group": "AMER",
+        "x": 18,
+        "y": 152,
+        "cac": 118.4
+      },
+      {
+        "name": "Campaign 03",
+        "group": "APAC",
+        "x": 18,
+        "y": 223,
+        "cac": 80.7
+      },
+      {
+        "name": "Campaign 04",
+        "group": "EMEA",
+        "x": 22,
+        "y": 195,
+        "cac": 112.8
+      },
+      {
+        "name": "Campaign 05",
+        "group": "AMER",
+        "x": 22,
+        "y": 236,
+        "cac": 93.2
+      },
+      {
+        "name": "Campaign 06",
+        "group": "APAC",
+        "x": 22,
+        "y": 359,
+        "cac": 61.3
+      },
+      {
+        "name": "Campaign 07",
+        "group": "EMEA",
+        "x": 27,
+        "y": 323,
+        "cac": 83.6
+      },
+      {
+        "name": "Campaign 08",
+        "group": "AMER",
+        "x": 27,
+        "y": 239,
+        "cac": 113.0
+      },
+      {
+        "name": "Campaign 09",
+        "group": "APAC",
+        "x": 27,
+        "y": 365,
+        "cac": 74.0
+      },
+      {
+        "name": "Campaign 10",
+        "group": "EMEA",
+        "x": 31,
+        "y": 304,
+        "cac": 102.0
+      },
+      {
+        "name": "Campaign 11",
+        "group": "AMER",
+        "x": 31,
+        "y": 221,
+        "cac": 140.3
+      },
+      {
+        "name": "Campaign 12",
+        "group": "APAC",
+        "x": 31,
+        "y": 336,
+        "cac": 92.3
+      },
+      {
+        "name": "Campaign 13",
+        "group": "EMEA",
+        "x": 35,
+        "y": 458,
+        "cac": 76.4
+      },
+      {
+        "name": "Campaign 14",
+        "group": "AMER",
+        "x": 35,
+        "y": 338,
+        "cac": 103.6
+      },
+      {
+        "name": "Campaign 15",
+        "group": "APAC",
+        "x": 35,
+        "y": 526,
+        "cac": 66.5
+      },
+      {
+        "name": "Campaign 16",
+        "group": "EMEA",
+        "x": 41,
+        "y": 450,
+        "cac": 91.1
+      },
+      {
+        "name": "Campaign 17",
+        "group": "AMER",
+        "x": 41,
+        "y": 327,
+        "cac": 125.4
+      },
+      {
+        "name": "Campaign 18",
+        "group": "APAC",
+        "x": 41,
+        "y": 508,
+        "cac": 80.7
+      },
+      {
+        "name": "Campaign 19",
+        "group": "EMEA",
+        "x": 48,
+        "y": 426,
+        "cac": 112.7
+      },
+      {
+        "name": "Campaign 20",
+        "group": "AMER",
+        "x": 48,
+        "y": 303,
+        "cac": 158.4
+      },
+      {
+        "name": "Campaign 21",
+        "group": "APAC",
+        "x": 48,
+        "y": 469,
+        "cac": 102.3
+      },
+      {
+        "name": "Campaign 22",
+        "group": "EMEA",
+        "x": 52,
+        "y": 636,
+        "cac": 81.8
+      },
+      {
+        "name": "Campaign 23",
+        "group": "AMER",
+        "x": 52,
+        "y": 463,
+        "cac": 112.3
+      },
+      {
+        "name": "Campaign 24",
+        "group": "APAC",
+        "x": 52,
+        "y": 730,
+        "cac": 71.2
+      },
+      {
+        "name": "Campaign 25",
+        "group": "EMEA",
+        "x": 58,
+        "y": 591,
+        "cac": 98.1
+      },
+      {
+        "name": "Campaign 26",
+        "group": "AMER",
+        "x": 58,
+        "y": 423,
+        "cac": 137.1
+      },
+      {
+        "name": "Campaign 27",
+        "group": "APAC",
+        "x": 58,
+        "y": 666,
+        "cac": 87.1
+      },
+      {
+        "name": "Campaign 28",
+        "group": "EMEA",
+        "x": 64,
+        "y": 523,
+        "cac": 122.4
+      },
+      {
+        "name": "Campaign 29",
+        "group": "AMER",
+        "x": 64,
+        "y": 633,
+        "cac": 101.1
+      },
+      {
+        "name": "Campaign 30",
+        "group": "APAC",
+        "x": 64,
+        "y": 1008,
+        "cac": 63.5
+      },
+      {
+        "name": "Campaign 31",
+        "group": "EMEA",
+        "x": 71,
+        "y": 819,
+        "cac": 86.7
+      },
+      {
+        "name": "Campaign 32",
+        "group": "AMER",
+        "x": 71,
+        "y": 590,
+        "cac": 120.3
+      },
+      {
+        "name": "Campaign 33",
+        "group": "APAC",
+        "x": 71,
+        "y": 938,
+        "cac": 75.7
+      },
+      {
+        "name": "Campaign 34",
+        "group": "EMEA",
+        "x": 77,
+        "y": 734,
+        "cac": 104.9
+      },
+      {
+        "name": "Campaign 35",
+        "group": "AMER",
+        "x": 77,
+        "y": 520,
+        "cac": 148.1
+      },
+      {
+        "name": "Campaign 36",
+        "group": "APAC",
+        "x": 77,
+        "y": 823,
+        "cac": 93.6
+      },
+      {
+        "name": "Campaign 37",
+        "group": "EMEA",
+        "x": 83,
+        "y": 626,
+        "cac": 132.6
+      },
+      {
+        "name": "Campaign 38",
+        "group": "AMER",
+        "x": 83,
+        "y": 778,
+        "cac": 106.7
+      },
+      {
+        "name": "Campaign 39",
+        "group": "APAC",
+        "x": 83,
+        "y": 1244,
+        "cac": 66.7
+      },
+      {
+        "name": "Campaign 40",
+        "group": "EMEA",
+        "x": 90,
+        "y": 984,
+        "cac": 91.5
+      },
+      {
+        "name": "Campaign 41",
+        "group": "AMER",
+        "x": 90,
+        "y": 703,
+        "cac": 128.0
+      },
+      {
+        "name": "Campaign 42",
+        "group": "APAC",
+        "x": 90,
+        "y": 1123,
+        "cac": 80.1
+      },
+      {
+        "name": "Campaign 43",
+        "group": "EMEA",
+        "x": 96,
+        "y": 858,
+        "cac": 111.9
+      },
+      {
+        "name": "Campaign 44",
+        "group": "AMER",
+        "x": 96,
+        "y": 602,
+        "cac": 159.5
+      },
+      {
+        "name": "Campaign 45",
+        "group": "APAC",
+        "x": 96,
+        "y": 957,
+        "cac": 100.3
+      },
+      {
+        "name": "Campaign 46",
+        "group": "EMEA",
+        "x": 104,
+        "y": 1283,
+        "cac": 81.1
+      },
+      {
+        "name": "Campaign 47",
+        "group": "AMER",
+        "x": 104,
+        "y": 925,
+        "cac": 112.4
+      },
+      {
+        "name": "Campaign 48",
+        "group": "APAC",
+        "x": 104,
+        "y": 1484,
+        "cac": 70.1
+      },
+      {
+        "name": "Campaign 49",
+        "group": "EMEA",
+        "x": 110,
+        "y": 1140,
+        "cac": 96.5
+      },
+      {
+        "name": "Campaign 50",
+        "group": "AMER",
+        "x": 110,
+        "y": 809,
+        "cac": 136.0
+      },
+      {
+        "name": "Campaign 51",
+        "group": "APAC",
+        "x": 110,
+        "y": 1295,
+        "cac": 84.9
+      },
+      {
+        "name": "Campaign 52",
+        "group": "EMEA",
+        "x": 115,
+        "y": 964,
+        "cac": 119.3
+      },
+      {
+        "name": "Campaign 53",
+        "group": "AMER",
+        "x": 115,
+        "y": 669,
+        "cac": 171.9
+      },
+      {
+        "name": "Campaign 54",
+        "group": "APAC",
+        "x": 115,
+        "y": 1067,
+        "cac": 107.8
+      }
+    ]
+  },
+  "options": {
+    "xLabel": "Spend (thousands of USD)",
+    "yLabel": "Signups",
+    "medians": true,
+    "quadrants": [
+      "Low spend · high yield",
+      "High spend · high yield",
+      "Low spend · low yield",
+      "High spend · low yield"
+    ],
+    "xFormat": {
+      "format": "number"
+    },
+    "yFormat": {
+      "format": "number"
+    },
+    "extra": [
+      {
+        "key": "cac",
+        "label": "Cost per signup",
+        "format": "currency",
+        "currency": "$",
+        "decimals": 1
+      }
+    ]
+  }
+}

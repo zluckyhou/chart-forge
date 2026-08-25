@@ -1,0 +1,98 @@
+{
+  "type": "kpi",
+  "width": 960,
+  "data": {
+    "items": [
+      {
+        "label": "New users",
+        "value": 36800,
+        "format": "compact",
+        "delta": 31.4,
+        "vs": "previous period",
+        "trend": [
+          2100,
+          2300,
+          2250,
+          2600,
+          2800,
+          2700,
+          3100,
+          3400,
+          3300,
+          3700,
+          3900,
+          4200
+        ]
+      },
+      {
+        "label": "Active users",
+        "value": 99000,
+        "format": "compact",
+        "delta": 29.4,
+        "vs": "previous period",
+        "trend": [
+          6200,
+          6500,
+          6400,
+          6900,
+          7300,
+          7100,
+          7800,
+          8200,
+          8100,
+          8700,
+          9100,
+          9400
+        ]
+      },
+      {
+        "label": "Checkout conversion",
+        "value": 6.56,
+        "format": "percent",
+        "decimals": 2,
+        "delta": -1.6,
+        "vs": "previous period",
+        "trend": [
+          6.9,
+          6.8,
+          6.7,
+          6.9,
+          6.6,
+          6.5,
+          6.7,
+          6.6,
+          6.4,
+          6.5,
+          6.6,
+          6.56
+        ]
+      },
+      {
+        "label": "Cost per signup",
+        "value": 41,
+        "format": "currency",
+        "currency": "$",
+        "delta": -8.2,
+        "deltaGood": false,
+        "vs": "previous period",
+        "trend": [
+          48,
+          47,
+          49,
+          46,
+          45,
+          46,
+          44,
+          43,
+          44,
+          42,
+          42,
+          41
+        ]
+      }
+    ]
+  },
+  "options": {
+    "columns": 4
+  }
+}

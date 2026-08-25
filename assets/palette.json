@@ -1,0 +1,129 @@
+{
+  "_readme": "Chart Forge colour tokens. To re-skin: edit here -> mirror into the :root and both dark blocks of assets/chartkit.css -> run scripts/validate_palette.py and ship only when light and dark both pass. The ORDER of the categorical slots is the colourblind-safety mechanism, not decoration.",
+  "validated": "2026-08-22 · scripts/validate_palette.py · light surface #fffffe · dark surface #17181c",
+  "categorical": {
+    "order_rule": "Take hues in order; colour follows the entity, never its rank. Scatter, bubble and any all-pairs use is capped at the first 3 slots; fold the rest into Other.",
+    "light": [
+      "#2f6fe4",
+      "#ee7146",
+      "#1aa37f",
+      "#e8a400",
+      "#e57aa6",
+      "#1f8a1f",
+      "#5b4bc4",
+      "#e04b4b"
+    ],
+    "dark": [
+      "#4d8cf0",
+      "#e2673c",
+      "#1f9f7c",
+      "#c28500",
+      "#d26393",
+      "#3fa83f",
+      "#8c7fe6",
+      "#e45c5c"
+    ],
+    "names": [
+      "蓝",
+      "珊瑚",
+      "青",
+      "琥珀",
+      "粉",
+      "绿",
+      "紫",
+      "红"
+    ]
+  },
+  "sequential": {
+    "rule": "Magnitude: one hue, light to dark. The lightest step means near-zero and may recede into the surface.",
+    "light": [
+      "#efeee9",
+      "#d4e2fb",
+      "#aac6f6",
+      "#7fa8ef",
+      "#5189e8",
+      "#2f6fe4",
+      "#2357b8",
+      "#183f8c"
+    ],
+    "dark": [
+      "#202126",
+      "#1a3a70",
+      "#1d4a9e",
+      "#275dc4",
+      "#3474e2",
+      "#5a93ea",
+      "#86adf0",
+      "#b3cbf7"
+    ]
+  },
+  "ordinal": {
+    "rule": "Ordered categories (funnel stages, tiers): six steps of one hue; the lightest clears 2:1 against the surface.",
+    "light": [
+      "#93b4f2",
+      "#6a98ec",
+      "#3f7ae6",
+      "#2a5fcc",
+      "#1f47a3",
+      "#163478"
+    ],
+    "dark": [
+      "#b3cbf7",
+      "#86adf0",
+      "#5a93ea",
+      "#3474e2",
+      "#275dc4",
+      "#1d4a9e"
+    ]
+  },
+  "diverging": {
+    "rule": "Signed values: blue <-> red with a neutral grey midpoint (light #efeee9 / dark #2c2d33) and equal steps per arm."
+  },
+  "semantic": {
+    "positive": {
+      "light": "#0f7a2e",
+      "dark": "#3dbb5f"
+    },
+    "negative": {
+      "light": "#c8383a",
+      "dark": "#ee6b6d"
+    },
+    "status": {
+      "good": "#0ca30c",
+      "warning": "#fab219",
+      "serious": "#ec835a",
+      "critical": "#d03b3b",
+      "rule": "A status colour always ships with an icon or a word, and is never reused as a series colour."
+    }
+  },
+  "chrome": {
+    "light": {
+      "plane": "#f5f4ef",
+      "surface": "#fffffe",
+      "ink": "#16161a",
+      "ink2": "#55554f",
+      "muted": "#8a8983",
+      "grid": "#e7e6df",
+      "axis": "#cfcec6",
+      "dim": "#c9c8c0",
+      "other": "#c3c2b7",
+      "tooltip": "#1c1c21"
+    },
+    "dark": {
+      "plane": "#0f1013",
+      "surface": "#17181c",
+      "ink": "#f4f4f2",
+      "ink2": "#c2c1b9",
+      "muted": "#8b8a84",
+      "grid": "#25262b",
+      "axis": "#34353b",
+      "dim": "#3a3b41",
+      "other": "#52514e",
+      "tooltip": "#2a2b31"
+    }
+  },
+  "type": {
+    "family": "IBM Plex Sans, Noto Sans SC, PingFang SC, system-ui",
+    "numerals": "tabular-nums for axis ticks, table columns and any vertically aligned figures; proportional figures for large standalone numbers."
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "type": "bar",
+  "title": "Analytics overtook Automation for second place",
+  "subtitle": "Annual recurring revenue by product · Q2 2026 · thousands of USD · sample data",
+  "note": "Hover a row to swap the value for its share and its distance from the average.",
+  "data": {
+    "categories": [
+      "Messaging",
+      "Analytics",
+      "Automation",
+      "Billing",
+      "Search",
+      "Storage",
+      "Webhooks",
+      "CDN"
+    ],
+    "series": [
+      {
+        "name": "ARR",
+        "values": [
+          1860,
+          1180,
+          1150,
+          1090,
+          870,
+          640,
+          610,
+          410
+        ]
+      }
+    ]
+  },
+  "options": {
+    "horizontal": true,
+    "format": "currency",
+    "currency": "$",
+    "highlight": [
+      "Analytics"
+    ],
+    "reference": "average",
+    "categoryLabel": "Product",
+    "labelWidth": 96
+  }
+}

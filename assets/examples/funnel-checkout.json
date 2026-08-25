@@ -1,0 +1,32 @@
+{
+  "type": "funnel",
+  "title": "Six in ten shoppers leave before the cart",
+  "subtitle": "Checkout funnel · 30 days to 20 Aug 2026 · sample data",
+  "data": {
+    "steps": [
+      {
+        "name": "Visit",
+        "value": 128400
+      },
+      {
+        "name": "Product view",
+        "value": 86200
+      },
+      {
+        "name": "Add to cart",
+        "value": 31800
+      },
+      {
+        "name": "Checkout",
+        "value": 14900
+      },
+      {
+        "name": "Paid",
+        "value": 12300
+      }
+    ]
+  },
+  "options": {
+    "format": "number"
+  }
+}

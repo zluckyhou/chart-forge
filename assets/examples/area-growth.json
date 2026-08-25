@@ -1,0 +1,50 @@
+{
+  "type": "area",
+  "title": "Weekly signups cleared 4,000 for the first time",
+  "subtitle": "Paid-plan signups · 12 weeks to 21 Jun 2026 · sample data",
+  "data": {
+    "x": [
+      "W1",
+      "W2",
+      "W3",
+      "W4",
+      "W5",
+      "W6",
+      "W7",
+      "W8",
+      "W9",
+      "W10",
+      "W11",
+      "W12"
+    ],
+    "series": [
+      {
+        "name": "Signups",
+        "values": [
+          2180,
+          2340,
+          2260,
+          2410,
+          2520,
+          2480,
+          2710,
+          2950,
+          3180,
+          3420,
+          3760,
+          4120
+        ]
+      }
+    ]
+  },
+  "options": {
+    "format": "number",
+    "toggle": false,
+    "refLines": [
+      {
+        "value": 3500,
+        "label": "Quarterly target"
+      }
+    ]
+  }
+}

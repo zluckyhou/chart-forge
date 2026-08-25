@@ -1,0 +1,54 @@
+{
+  "type": "bar",
+  "title": "Paid caught up fast after July's budget increase",
+  "subtitle": "New users by channel · Mar – Aug 2026 · sample data",
+  "data": {
+    "categories": [
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug"
+    ],
+    "series": [
+      {
+        "name": "Organic",
+        "values": [
+          9800,
+          10400,
+          11200,
+          12600,
+          12100,
+          13500
+        ]
+      },
+      {
+        "name": "Paid",
+        "values": [
+          6100,
+          5800,
+          7300,
+          6900,
+          9400,
+          9800
+        ]
+      },
+      {
+        "name": "Social",
+        "values": [
+          3400,
+          3900,
+          4100,
+          5200,
+          5600,
+          6300
+        ]
+      }
+    ]
+  },
+  "options": {
+    "format": "compact",
+    "categoryLabel": "Month"
+  }
+}
