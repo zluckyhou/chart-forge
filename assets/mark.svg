@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="chart-forge">
+  <rect width="512" height="512" rx="116" fill="#2f6fe4"/>
+  <g fill="none" stroke="#ffffff" stroke-width="34" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M112 372 L208 268 L296 320 L400 168"/>
+    <path d="M112 140 L112 400 L400 400" opacity="0.42"/>
+  </g>
+  <circle cx="400" cy="168" r="30" fill="#ffffff"/>
+</svg>

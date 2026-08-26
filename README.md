@@ -1,18 +1,29 @@
+<div align="center">
+
+<img src="assets/mark.svg" width="88" alt="chart-forge icon">
+
 # chart-forge
 
-**Charts that make the point, not just plot the numbers.**
+**Charts that make the point, not just plot the numbers.** Hand an agent a table, a CSV or a query
+result: it decides what the chart has to say, picks the form that says it fastest, and renders a
+self-contained interactive page — validated colours, hover readouts, a table view and dark mode.
 
-`chart-forge` is an [Agent Skill](https://agentskills.io): hand an agent a table, a CSV or a query
-result and it decides what the chart has to say, picks the form that says it fastest, writes a small
-JSON spec and renders a self-contained interactive HTML page — hover readouts, a table view and dark
-mode included, no build step and no chart library. The palette is validated for colour-vision
-deficiency and contrast before it ships, and the title is a sentence, not a metric name.
+[![License: MIT](https://img.shields.io/badge/License-MIT-2f6fe4.svg)](LICENSE)
+[![Agent Skill](https://img.shields.io/badge/Agent_Skill-install-1aa37f.svg)](#install)
+[![Dependencies: none](https://img.shields.io/badge/Dependencies-none-55554f.svg)](#install)
+
+<a href="https://ko-fi.com/J3J3YMOKZ"><img src="docs/ko-fi-button.svg" height="44" alt="Support me on Ko-fi"></a>
+
+</div>
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/gallery/hero-dark.png">
   <img alt="Four charts: a line chart with end labels and an event annotation, a ranking with an average line, a heatmap with row and column marginals, and a comparison table with in-cell bars" src="assets/gallery/hero.png">
 </picture>
 <p align="center"><sub>Every image in this README was rendered by the skill from the specs in <code>assets/examples/</code>, light and dark from the same file.</sub></p>
+
+`chart-forge` is an [Agent Skill](https://agentskills.io). The palette is validated for colour-vision
+deficiency and contrast before it ships, and the title is a sentence, not a metric name.
 
 > **中文速览** — 让 agent 基于数据画出「合适、好看、可交互」的图表。你给数据，它先想清楚这张图要说什么，
 > 再选图型、写一份 JSON 规格，渲染成零依赖的交互式 HTML（可导出 PNG）：悬停读数、表格视图、深色模式都自带，
@@ -162,20 +173,19 @@ scripts/validate_palette.py    the six colour checks, light and dark            
 - PNG export needs a headless Chromium; HTML export needs nothing.
 - The web font comes from Google Fonts unless you pass `--no-webfont`.
 
-## Support
-
-If this saved you an afternoon of fighting a chart library, you can buy me a coffee:
-
-<a href="https://ko-fi.com/zluckyhou"><img alt="Support me on Ko-fi" height="36" src="https://storage.ko-fi.com/cdn/kofi3.png?v=6"></a>
-
 ## Star history
 
-<a href="https://star-history.com/#zluckyhou/chart-forge&Date">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=zluckyhou/chart-forge&type=Date&theme=dark">
-    <img alt="Star history chart" width="640" src="https://api.star-history.com/svg?repos=zluckyhou/chart-forge&type=Date">
-  </picture>
-</a>
+The chart is generated inside this repository by
+[Star History Action](https://github.com/narayann7/star-history-action). It uses the
+repository-scoped `GITHUB_TOKEN`, so it keeps working when third-party chart services lose access to
+GitHub's star data.
+
+<!-- star-history:start -->
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/star-history/star-history-dark.svg">
+  <img alt="Star history" src="docs/star-history/star-history-light.svg">
+</picture>
+<!-- star-history:end -->
 
 ## License
 

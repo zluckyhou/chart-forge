@@ -1,0 +1,30 @@
+name: Update star history
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 3 * * *"
+  watch:
+    types: [started]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: star-history
+  cancel-in-progress: true
+
+jobs:
+  update:
+    if: github.repository == 'zluckyhou/chart-forge'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Generate and publish chart
+        uses: narayann7/star-history-action@a68d8f9d67ca20d55b682a264e69152dcf326e9c # v1.0.5
+        with:
+          repos: ${{ github.repository }}
+          output-dir: docs/star-history
+          commit-message: "docs: update star history [skip ci]"

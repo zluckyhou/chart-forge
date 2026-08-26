@@ -1,17 +1,29 @@
+<div align="center">
+
+<img src="assets/mark.svg" width="88" alt="chart-forge 图标">
+
 # chart-forge
 
-**让图表说出结论，而不只是把数字画出来。**
+**让图表说出结论，而不只是把数字画出来。** 把一张表、一份 CSV 或一段查询结果交给 agent：
+它先想清楚这张图要说什么，再选出最快能证明这句话的图型，渲染成自包含的交互页面——
+校验过的配色、悬停读数、表格视图、深色模式。
 
-`chart-forge` 是一个 [Agent Skill](https://agentskills.io)：把一张表、一份 CSV 或一段查询结果交给 agent，
-它先想清楚这张图要说什么，再选出最快能证明这句话的图型，写一份小小的 JSON 规格，渲染成零依赖的交互式
-HTML —— 悬停读数、表格视图、深色模式都自带，不需要构建，也不需要图表库。配色在发布前经过色盲与对比度校验，
-标题写的是结论，不是指标名。
+[![License: MIT](https://img.shields.io/badge/License-MIT-2f6fe4.svg)](LICENSE)
+[![Agent Skill](https://img.shields.io/badge/Agent_Skill-install-1aa37f.svg)](#安装)
+[![Dependencies: none](https://img.shields.io/badge/Dependencies-none-55554f.svg)](#安装)
+
+<a href="https://ko-fi.com/J3J3YMOKZ"><img src="docs/ko-fi-button.svg" height="44" alt="在 Ko-fi 上支持我"></a>
+
+</div>
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/gallery/hero-dark.png">
   <img alt="四张图：带末端标签与事件标注的折线、带平均线的排名条、带行列边际条的热力图、带格内条的对比表" src="assets/gallery/hero.png">
 </picture>
 <p align="center"><sub>README 里每张图都由本 skill 从 <code>assets/examples/</code> 的规格渲染而来，浅色与深色出自同一个文件。</sub></p>
+
+`chart-forge` 是一个 [Agent Skill](https://agentskills.io)。配色在发布前经过色盲与对比度校验，
+标题写的是结论，不是指标名。
 
 ## 安装
 
@@ -117,20 +129,17 @@ python3 scripts/validate_palette.py --from-json assets/palette.json
 - 导出 PNG 需要无头 Chromium；导出 HTML 什么都不需要。
 - 默认引用 Google Fonts，内网环境加 `--no-webfont`。
 
-## 赞助
-
-如果它帮你省下了和图表库搏斗的一个下午，可以请我喝杯咖啡：
-
-<a href="https://ko-fi.com/zluckyhou"><img alt="在 Ko-fi 上支持我" height="36" src="https://storage.ko-fi.com/cdn/kofi3.png?v=6"></a>
-
 ## Star 趋势
 
-<a href="https://star-history.com/#zluckyhou/chart-forge&Date">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=zluckyhou/chart-forge&type=Date&theme=dark">
-    <img alt="Star 趋势图" width="640" src="https://api.star-history.com/svg?repos=zluckyhou/chart-forge&type=Date">
-  </picture>
-</a>
+这张图由 [Star History Action](https://github.com/narayann7/star-history-action) **在本仓库内生成**，
+用的是仓库自带的 `GITHUB_TOKEN`——第三方图表服务拿不到 GitHub star 数据时，它照常工作。
+
+<!-- star-history:start -->
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/star-history/star-history-dark.svg">
+  <img alt="Star 趋势图" src="docs/star-history/star-history-light.svg">
+</picture>
+<!-- star-history:end -->
 
 ## 许可
 
