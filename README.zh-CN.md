@@ -17,8 +17,8 @@
 </div>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/gallery/hero-dark.png">
-  <img alt="四张图：带末端标签与事件标注的折线、带平均线的排名条、带行列边际条的热力图、带格内条的对比表" src="assets/gallery/hero.png">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/gallery/hero-dark.png?v=0.2.1">
+  <img alt="四张图：带末端标签与事件标注的折线、带平均线的排名条、带行列边际条的热力图、带格内条的对比表" src="assets/gallery/hero.png?v=0.2.1">
 </picture>
 <p align="center"><sub>README 里每张图都由本 skill 从 <code>assets/examples/</code> 的规格渲染而来，浅色与深色出自同一个文件。</sub></p>
 

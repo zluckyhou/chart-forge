@@ -17,8 +17,8 @@ self-contained interactive page — validated colours, hover readouts, a table v
 </div>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/gallery/hero-dark.png">
-  <img alt="Four charts: a line chart with end labels and an event annotation, a ranking with an average line, a heatmap with row and column marginals, and a comparison table with in-cell bars" src="assets/gallery/hero.png">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/gallery/hero-dark.png?v=0.2.1">
+  <img alt="Four charts: a line chart with end labels and an event annotation, a ranking with an average line, a heatmap with row and column marginals, and a comparison table with in-cell bars" src="assets/gallery/hero.png?v=0.2.1">
 </picture>
 <p align="center"><sub>Every image in this README was rendered by the skill from the specs in <code>assets/examples/</code>, light and dark from the same file.</sub></p>
 
