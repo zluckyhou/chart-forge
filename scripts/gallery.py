@@ -24,15 +24,16 @@ def hero(theme, png):
     sys.path.insert(0, HERE)
     import render as r
     specs = [json.load(open(os.path.join(EX, n + ".json"), encoding="utf-8")) for n in HERO]
-    html = r.build_html(specs, "Chart Forge", "Chart Forge", theme, True, 1464, "publish")
+    for s in specs: s["width"] = 840          # one width for every card so the grid lines up
+    html = r.build_html(specs, "Chart Forge", "Chart Forge", theme, True, 840 * 2 + 24, "publish")
     html = html.replace("root.style.display = 'flex'; root.style.flexDirection = 'column'; root.style.gap = '32px';",
-                        "root.style.display = 'grid'; root.style.gridTemplateColumns = 'repeat(2, max-content)'; root.style.gap = '24px'; root.style.alignItems = 'start';")
+                        "root.style.display = 'grid'; root.style.gridTemplateColumns = 'repeat(2, 840px)'; root.style.gap = '24px'; root.style.alignItems = 'stretch';")
     html = html.replace('<div class="ck-page-head"', '<div class="ck-page-head" style="display:none"')
     with tempfile.NamedTemporaryFile("w", suffix=".html", delete=False, encoding="utf-8") as f:
         f.write(html); tmp = f.name
     with sync_playwright() as p:
         b = p.chromium.launch()
-        pg = b.new_page(viewport={"width": 1720, "height": 1000}, device_scale_factor=1, color_scheme=theme)
+        pg = b.new_page(viewport={"width": 1800, "height": 1000}, device_scale_factor=1, color_scheme=theme)
         pg.add_init_script("document.documentElement.setAttribute('data-motion','off')")
         pg.goto("file://" + tmp); pg.wait_for_timeout(800)
         pg.locator(".ck-page").screenshot(path=png)
