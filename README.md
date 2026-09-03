@@ -52,19 +52,19 @@ A chart is a JSON file. This is the whole spec behind the first chart above:
 ```json
 {
   "type": "line",
-  "title": "Mobile passed desktop in September",
-  "subtitle": "Sessions by device · Jan 2025 – Jun 2026 · thousands · sample data",
+  "title": "Subscriptions passed one-off sales in January",
+  "subtitle": "Monthly revenue by sales model · Jul 2024 – Jun 2026 · $ thousands · sample data",
+  "source": "Chart Forge sample · billing export",
   "data": {
-    "x": ["2025-01", "2025-02", "…", "2026-06"],
+    "x": ["2024-07", "2024-08", "…", "2026-06"],
     "series": [
-      { "name": "Mobile",  "values": [246, 258, "…", 523] },
-      { "name": "Desktop", "values": [418, 412, "…", 318] },
-      { "name": "Tablet",  "values": [92, 91, "…", 67] }
+      { "name": "Subscriptions", "values": [118, 124, "…", 412] },
+      { "name": "One-off sales", "values": [262, 258, "…", 294] }
     ]
   },
   "options": {
-    "format": "number",
-    "annotations": [{ "x": "2025-09", "label": "Mobile takes the lead" }]
+    "format": "currency", "currency": "$",
+    "annotations": [{ "x": "2025-04", "label": "Annual plan launched" }]
   }
 }
 ```
@@ -74,6 +74,7 @@ python3 scripts/render.py chart.json --validate            # types, lengths, fun
 python3 scripts/render.py chart.json -o out/chart.html     # one self-contained file
 python3 scripts/render.py chart.json -o out/chart.html --png --theme dark
 python3 scripts/render.py a.json b.json -o out/report.html # several charts, one page
+python3 scripts/render.py chart.json -o out/chart.html --register publish --png   # for slides and posts: toolbar only on hover, never in the PNG
 ```
 
 The division of labour is the point: **the agent owns the message, the skill owns the craft.** The
@@ -88,10 +89,10 @@ Ten `type` values (ranking is `bar` with `horizontal: true`), each with a runnab
 
 | | |
 |---|---|
-| **Line / area** — end labels carry the series name and its latest value, so nobody hunts through a legend; annotations explain the turn; monotone smoothing never overshoots the data. <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/line-crossover-dark.png"><img alt="Line chart" src="assets/gallery/line-crossover.png"></picture> | **Ranking** — sorted, numbered, one highlighted subject with the rest greyed, and a dashed average line running through the bars. Hover swaps the value for share and distance from the average. <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/bar-ranking-dark.png"><img alt="Ranking bars" src="assets/gallery/bar-ranking.png"></picture> |
+| **Line / area** — end labels carry the series name and its latest value and stand in for the legend; the lead series gets a dot per period; annotations explain the turn in small caps; monotone smoothing never overshoots the data. <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/line-crossover-dark.png"><img alt="Line chart" src="assets/gallery/line-crossover.png"></picture> | **Ranking** — sorted (the order is the rank), one highlighted subject with the rest greyed, and a dashed average line running through the bars. Hover swaps the value for share and distance from the average. <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/bar-ranking-dark.png"><img alt="Ranking bars" src="assets/gallery/bar-ranking.png"></picture> |
 | **Bar** — grouped or stacked from the same spec; hovering lights the whole category band and reads out every series; the latest period is direct-labelled. <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/bar-grouped-dark.png"><img alt="Grouped bar chart" src="assets/gallery/bar-grouped.png"></picture> | **Funnel** — the neck between two steps *is* the drop-off, with the step conversion printed inside it and the worst step badged automatically. <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/funnel-checkout-dark.png"><img alt="Funnel chart" src="assets/gallery/funnel-checkout.png"></picture> |
 | **Heatmap** — one hue light to dark, with row and column marginal bars so the busiest day and hour read at a glance; a diverging scale for signed data. <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/heatmap-hours-dark.png"><img alt="Heatmap" src="assets/gallery/heatmap-hours.png"></picture> | **Scatter** — hovering drops guides to both axes with value chips; the top points label themselves and skip the label when it would overlap; medians split the plot into quadrants. <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/scatter-roi-dark.png"><img alt="Scatter plot" src="assets/gallery/scatter-roi.png"></picture> |
-| **Donut** — legend rows carry their own proportional bars and the centre readout follows the pointer; one click switches to bars when the shares are too close to compare as arcs. <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/donut-share-dark.png"><img alt="Donut chart" src="assets/gallery/donut-share.png"></picture> | **Table** — sticky header and first column, in-cell bars that can share one scale across columns, tags, two-level headers, click-to-sort. <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/table-experiment-dark.png"><img alt="Data table" src="assets/gallery/table-experiment.png"></picture> |
+| **Donut** — legend rows carry a share line in the slice's own colour and the centre readout follows the pointer; one click switches to bars when the shares are too close to compare as arcs. <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/donut-share-dark.png"><img alt="Donut chart" src="assets/gallery/donut-share.png"></picture> | **Table** — sticky header and first column, in-cell bars that can share one scale across columns, tags, two-level headers, click-to-sort. <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/table-experiment-dark.png"><img alt="Data table" src="assets/gallery/table-experiment.png"></picture> |
 | **Candlestick** — OHLC with a trading-app tooltip and an axis that frames the range instead of anchoring at zero. Red-up by default, `colors: "intl"` flips it. <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/candle-price-dark.png"><img alt="Candlestick chart" src="assets/gallery/candle-price.png"></picture> | **KPI tiles** — value, a signed pill that knows whether up is good, and a sparkline tinted by that judgement. <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/kpi-tiles-dark.png"><img alt="KPI tiles" src="assets/gallery/kpi-tiles.png"></picture> |
 
 ## Why they read faster than a default chart
@@ -106,6 +107,10 @@ Ten `type` values (ranking is `bar` with `horizontal: true`), each with a runnab
 - **No second y-axis, ever.** Two measures of different magnitude get two charts or a common index.
 - **Every chart has a table twin.** Hover enhances, it never gates: values stay reachable by keyboard,
   and by readers who cannot use hover at all.
+- **Editorial, not dashboard.** A rounded card with a hairline edge and no shadow on a warm plane, a
+  quiet toolbar (hidden until hover in the `publish` register), small-caps annotations and an optional
+  `source` line, and one entrance — bars rise, lines draw, slices fade in — after which the chart is
+  still. The palette and the forms are the same in both registers; only the chrome changes.
 
 The full list of rules the output is held to — and the anti-patterns that fail review — is in
 [`references/rules.md`](references/rules.md); the "which form?" decision table is in

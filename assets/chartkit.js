@@ -4,12 +4,14 @@
  * a hover layer on every chart · a table twin for every chart · labels are untrusted text (textContent only).
  * Signature devices (what makes these read faster than a default chart):
  *   bar      — hover lights up the whole category as a soft band; last period is direct-labelled; stacks carry totals
- *   ranking  — rank numerals, a dashed average line through the bars, one highlighted subject
+ *   ranking  — a dashed average line through the bars, one highlighted subject (rank numerals on request)
  *   line     — FT-style end labels (name + value), event annotations, peak marker, target line, smooth monotone curves
  *   donut    — legend rows carry proportional data bars; center readout follows the hover
  *   scatter  — hover drop-lines to both axes with value chips; top points labelled; median quadrants
  *   heatmap  — row / column marginal bars so the busiest day and hour read at a glance
  *   funnel   — real "necks" between steps show where people leave, with the step conversion in the neck
+ * Registers: `analyse` (default) keeps the toolbar in view; `publish` hides it until hover and never prints it to PNG.
+ * Motion: one entrance per card (bars rise, lines draw, slices fade in), then still. See chartkit.css.
  */
 (function () {
   'use strict';
@@ -20,6 +22,14 @@
   var ORDINAL_INK = ['#16161a', '#16161a', '#ffffff', '#ffffff', '#ffffff', '#ffffff'];
   var DIM = 'var(--ck-dim)';
   var uid = 0;
+  var DEFAULTS = { register: 'analyse', motion: true };
+  function motionOn(spec) {
+    if (spec.motion === false || (spec.motion === undefined && !DEFAULTS.motion)) return false;
+    if (document.documentElement.getAttribute('data-motion') === 'off') return false;
+    try { if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false; } catch (e) {}
+    return true;
+  }
+  function delay(ms) { return 'animation-delay:' + ms + 'ms'; }
 
   /* ---------- i18n ----------
    * Only the CHROME is translated (buttons, table headers, tooltip labels, scale notes).
@@ -178,7 +188,9 @@
 
   /* ---------- card shell ---------- */
   function card(spec, width) {
-    var c = el('figure', { class: 'ck-card', style: { width: width + 'px' } });
+    var reg = spec.register === 'publish' || spec.register === 'analyse' ? spec.register : DEFAULTS.register;
+    var c = el('figure', { class: 'ck-card' + (motionOn(spec) ? ' ck-motion' : ''), 'data-register': reg, style: { width: width + 'px' } });
+    if (c.classList.contains('ck-motion')) setTimeout(function () { c.classList.remove('ck-motion'); }, 1800);
     var head = el('div', { class: 'ck-head' }), titles = el('div');
     // Two lines, never three: the conclusion, then one line of context.
     // A legacy `eyebrow` is folded into the front of the subtitle instead of stacking a third line.
@@ -191,6 +203,7 @@
     var body = el('div', { class: 'ck-body' }); c.appendChild(body);
     var tip = el('div', { class: 'ck-tip' }); body.appendChild(tip);
     if (spec.note) c.appendChild(el('p', { class: 'ck-note', text: spec.note }));
+    if (spec.source) c.appendChild(el('p', { class: 'ck-source', text: spec.source }));
     return { root: c, controls: controls, legend: legend, body: body, tip: tip };
   }
   function segmented(options, value, onChange) {
@@ -208,9 +221,9 @@
     b.addEventListener('click', function () { var on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', String(on)); onChange(on); });
     return b;
   }
-  function legendFor(ui, series, shape, hidden, onToggle) {
+  function legendFor(ui, series, shape, hidden, onToggle, hide) {
     clear(ui.legend);
-    if (series.length < 2) { ui.legend.style.display = 'none'; return; }
+    if (series.length < 2 || hide) { ui.legend.style.display = 'none'; return; }
     ui.legend.style.display = '';
     series.forEach(function (s, i) {
       ui.legend.appendChild(el('button', { type: 'button', 'aria-pressed': String(!hidden[i]), onclick: function () { onToggle(i); } }, [el('i', { class: 'ck-key ' + shape, style: { background: s.color } }), s.name]));
@@ -317,11 +330,11 @@
           var d = (top && !neg) ? roundedTop(x, y, barW, hh, 5)
                 : (neg ? 'M' + x + ',' + (y + hh) + ' h' + barW + ' v' + (-hh) + ' h' + (-barW) + ' Z'
                        : 'M' + x + ',' + y + ' h' + barW + ' v' + hh + ' h' + (-barW) + ' Z');
-          g.appendChild(sv('path', { class: 'ck-mark', d: d, fill: s.color }));
+          g.appendChild(sv('path', { class: 'ck-mark' + (neg ? ' ck-in' : ' ck-rise'), style: delay(ci * 50 + si * 30), d: d, fill: s.color }));
           var showLabel = !st.stacked && (labels === 'all' || (labels === 'last' && ci === n - 1));
-          if (showLabel && !s.dimmed) g.appendChild(sv('text', { class: 'ck-vlabel ck-halo ck-num', x: x + barW / 2, y: neg ? y + hh + 13 : y - 7, 'text-anchor': 'middle', text: fmt(v, f) }));
+          if (showLabel && !s.dimmed) g.appendChild(sv('text', { class: 'ck-vlabel ck-halo ck-num ck-in', style: delay(400 + ci * 50), x: x + barW / 2, y: neg ? y + hh + 13 : y - 7, 'text-anchor': 'middle', text: fmt(v, f) }));
         });
-        if (st.stacked && vis.length > 1) g.appendChild(sv('text', { class: 'ck-total ck-halo ck-num', x: x0 + barW / 2, y: yOf(acc) - 7, 'text-anchor': 'middle', text: fmt(acc, f) }));
+        if (st.stacked && vis.length > 1) g.appendChild(sv('text', { class: 'ck-total ck-halo ck-num ck-in', style: delay(400 + ci * 50), x: x0 + barW / 2, y: yOf(acc) - 7, 'text-anchor': 'middle', text: fmt(acc, f) }));
         var hit = sv('rect', { class: 'ck-hit', x: slot * ci, y: 0, width: slot, height: plotH });
         hitEvents(hit, function () {
           bandEls.forEach(function (b, j) { b.style.opacity = j === ci ? 1 : 0; });
@@ -356,18 +369,18 @@
       if (st.table) { ui.body.appendChild(tableView(['#', o.categoryLabel || L.category, s.name || L.value, L.share], list.map(function (it, i) { return [String(i + 1), it.name, fmt(it.value, f), (it.value / total * 100).toFixed(1) + '%']; }))); return; }
       var wrap = el('div', { class: 'ck-rows' });
       if (ref) {
-        var head = el('div', { class: 'ck-ref-head' }, [el('span', { class: 'ck-rank' }), el('span', { style: { width: labelW + 'px', flex: 'none' } }),
+        var head = el('div', { class: 'ck-ref-head' }, [o.rankNumbers ? el('span', { class: 'ck-rank' }) : null, el('span', { style: { width: labelW + 'px', flex: 'none' } }),
           el('div', { style: { flex: 1, position: 'relative', height: '14px' } }, el('span', { class: 'lab ck-num', style: { left: (ref.value / max * 100).toFixed(1) + '%' }, text: (ref.label || L.baseline) + ' ' + fmt(ref.value, f) })), el('span', { style: { width: valueW + 'px', flex: 'none' } })]);
         wrap.appendChild(head);
       }
       list.forEach(function (it, i) {
         var row = el('div', { class: 'ck-row' + (it.hl ? ' hl' : '') });
-        row.appendChild(el('span', { class: 'ck-rank ck-num', text: (i + 1 < 10 ? '0' : '') + (i + 1) }));
+        if (o.rankNumbers) row.appendChild(el('span', { class: 'ck-rank ck-num', text: (i + 1 < 10 ? '0' : '') + (i + 1) }));
         row.appendChild(el('span', { class: 'lbl', style: { width: labelW + 'px', color: it.hl ? 'var(--ck-ink)' : '', fontWeight: it.hl ? 600 : 400 }, text: it.name }));
-        var trk = el('div', { class: 'trk' }, el('div', { class: 'fill ck-mark', style: { width: (it.value / max * 100).toFixed(1) + '%', background: it.color } }));
+        var trk = el('div', { class: 'trk' }, el('div', { class: 'fill ck-mark ck-grow', style: { width: (it.value / max * 100).toFixed(1) + '%', background: it.color, animationDelay: (i * 70) + 'ms' } }));
         if (ref) trk.appendChild(el('div', { class: 'ref', style: { left: (ref.value / max * 100).toFixed(1) + '%' } }));
         row.appendChild(trk);
-        var val = el('span', { class: 'val ck-num', style: { width: valueW + 'px' }, text: fmt(it.value, f) });
+        var val = el('span', { class: 'val ck-num ck-in', style: { width: valueW + 'px', animationDelay: (300 + i * 70) + 'ms', fontWeight: it.hl || !hl.length ? 600 : 500, color: it.hl || !hl.length ? '' : 'var(--ck-ink2)' }, text: fmt(it.value, f) });
         row.appendChild(val);
         hitEvents(row, function () {
           each(wrap.querySelectorAll('.ck-row'), function (r) { r.classList.toggle('dim', r !== row); });
@@ -383,7 +396,7 @@
   /* ---------- LINE / AREA ---------- */
   function renderLine(ui, spec, width) {
     var o = spec.options || {}, f = fOf(o);
-    var xs = spec.data.x, series = seriesOf(spec), n = xs.length, smooth = o.smooth !== false;
+    var xs = spec.data.x, series = seriesOf(spec), n = xs.length, smooth = o.smooth !== false, hl = o.highlight || [];
     var st = { area: spec.type === 'area' || !!o.area, hidden: series.map(function () { return false; }), table: false, hover: -1 };
     if (o.toggle !== false) ui.controls.appendChild(segmented([{ label: L.lineMode, value: false }, { label: L.areaMode, value: true }], st.area, function (v) { st.area = v; draw(); }));
     ui.controls.appendChild(toggleButton(L.table, false, function (v) { st.table = v; draw(); }));
@@ -393,7 +406,7 @@
     function visible() { return series.filter(function (s, i) { return !st.hidden[i]; }); }
     function draw() {
       clear(ui.body); ui.body.appendChild(ui.tip);
-      legendFor(ui, series, 'line', st.hidden, function (i) { if (!st.hidden[i] && visible().length === 1) return; st.hidden[i] = !st.hidden[i]; draw(); });
+      legendFor(ui, series, 'line', st.hidden, function (i) { if (!st.hidden[i] && visible().length === 1) return; st.hidden[i] = !st.hidden[i]; draw(); }, endLabels && o.legend !== true);
       if (st.table) { ui.body.appendChild(tableView([o.xLabel || 'X'].concat(series.map(function (s) { return s.name; })), xs.map(function (x, i) { return [x].concat(series.map(function (s) { return fmt(s.values[i], f); })); }))); return; }
       var vis = visible();
       var dataMin = Math.min(0, minOf(vis.map(function (s) { return minOf(s.values); }).concat((o.refLines || []).map(function (r) { return r.value; }))));
@@ -407,9 +420,8 @@
       (o.annotations || []).forEach(function (a) {
         var i = xs.indexOf(a.x); if (i === -1) return;
         var x = xOf(i);
-        g.appendChild(sv('line', { class: 'ck-anno-line', x1: x, x2: x, y1: -6, y2: plotH }));
-        g.appendChild(sv('circle', { cx: x, cy: -6, r: 3, fill: 'var(--ck-ink2)' }));
-        g.appendChild(sv('text', { class: 'ck-anno-text ck-halo', x: x + 7, y: -2, text: a.label }));
+        g.appendChild(sv('line', { class: 'ck-anno-line', x1: x, x2: x, y1: -8, y2: plotH }));
+        g.appendChild(sv('text', { class: 'ck-anno-text ck-halo', x: x + 6, y: -4, text: a.label }));
       });
       var ordered = vis.slice().sort(function (a, b) { return (a.dimmed ? 0 : 1) - (b.dimmed ? 0 : 1); });
       ordered.forEach(function (s) {
@@ -417,17 +429,20 @@
         if (st.area) {
           var id = 'ckg' + (++uid);
           defs.appendChild(sv('linearGradient', { id: id, x1: 0, y1: 0, x2: 0, y2: 1 }, [sv('stop', { offset: '0%', style: 'stop-color:' + s.color + ';stop-opacity:' + (s.dimmed ? 0.2 : 0.24) }), sv('stop', { offset: '100%', style: 'stop-color:' + s.color + ';stop-opacity:0.02' })]));
-          g.appendChild(sv('path', { class: 'ck-mark', d: d + ' L' + plotW.toFixed(1) + ',' + yZero.toFixed(1) + ' L0,' + yZero.toFixed(1) + ' Z', fill: 'url(#' + id + ')' }));
+          g.appendChild(sv('path', { class: 'ck-mark ck-in', style: delay(500), d: d + ' L' + plotW.toFixed(1) + ',' + yZero.toFixed(1) + ' L0,' + yZero.toFixed(1) + ' Z', fill: 'url(#' + id + ')' }));
         }
-        g.appendChild(sv('path', { class: 'ck-mark', d: d, fill: 'none', stroke: s.color, 'stroke-width': 2.2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
-        g.appendChild(sv('circle', { class: 'ck-ring', cx: xOf(n - 1), cy: yOf(s.values[n - 1]), r: 4, fill: s.color }));
+        var si = series.indexOf(s), lead = !s.dimmed && (hl.length ? true : si === 0);
+        g.appendChild(sv('path', { class: 'ck-mark ck-draw', style: delay(si * 120), pathLength: 1, d: d, fill: 'none', stroke: s.color, 'stroke-width': lead ? 2.4 : 1.8, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
+        // the lead series carries a dot on every point (one dot = one period); the others stay as lines
+        if (lead && vis.length > 1 && n <= 40 && plotW / n >= 12) s.values.forEach(function (v, i) { g.appendChild(sv('circle', { class: 'ck-in', style: delay(700 + i * 20), cx: xOf(i), cy: yOf(v), r: 2.2, fill: s.color })); });
+        g.appendChild(sv('circle', { class: 'ck-ring ck-in', style: delay(900), cx: xOf(n - 1), cy: yOf(s.values[n - 1]), r: 4, fill: s.color }));
       });
       if (endLabels) {
         var labs = vis.map(function (s) { return { s: s, y: yOf(s.values[n - 1]) }; }).sort(function (a, b) { return a.y - b.y; });
         for (var j = 1; j < labs.length; j++) if (labs[j].y - labs[j - 1].y < 26) labs[j].y = labs[j - 1].y + 26;
         labs.forEach(function (l) {
-          g.appendChild(sv('text', { class: 'ck-endname', x: plotW + 12, y: l.y - 2, style: l.s.dimmed ? 'fill:var(--ck-muted)' : '', text: l.s.name }));
-          g.appendChild(sv('text', { class: 'ck-endval ck-num', x: plotW + 12, y: l.y + 11, text: fmt(l.s.values[n - 1], f) }));
+          g.appendChild(sv('text', { class: 'ck-endname ck-in', style: delay(900) + (l.s.dimmed ? ';fill:var(--ck-muted)' : ''), x: plotW + 12, y: l.y - 2, text: l.s.name }));
+          g.appendChild(sv('text', { class: 'ck-endval ck-num ck-in', style: delay(900), x: plotW + 12, y: l.y + 11, text: fmt(l.s.values[n - 1], f) }));
         });
       }
       if (markMax && vis.length) {
@@ -492,8 +507,8 @@
       cd.forEach(function (c, i) {
         var cx = slot * i + slot / 2, up = c.c >= c.o, col = up ? upC : dnC;
         var yo = yOf(c.o), yc = yOf(c.c), top = Math.min(yo, yc), bh = Math.max(1.2, Math.abs(yo - yc));
-        g.appendChild(sv('line', { class: 'ck-mark', x1: cx, x2: cx, y1: yOf(c.h), y2: yOf(c.l), stroke: col, 'stroke-width': 1.2 }));
-        g.appendChild(sv('rect', { class: 'ck-mark', x: cx - bw / 2, y: top, width: bw, height: bh, fill: up ? col : col, stroke: col, rx: 1 }));
+        g.appendChild(sv('line', { class: 'ck-mark ck-in', style: delay(i * 18), x1: cx, x2: cx, y1: yOf(c.h), y2: yOf(c.l), stroke: col, 'stroke-width': 1.2 }));
+        g.appendChild(sv('rect', { class: 'ck-mark ck-in', style: delay(i * 18), x: cx - bw / 2, y: top, width: bw, height: bh, fill: col, stroke: col, rx: 1 }));
         var hit = sv('rect', { class: 'ck-hit', x: slot * i, y: 0, width: slot, height: plotH });
         hitEvents(hit, function () {
           // trading-app tooltip: close + change lead (coloured by direction vs the previous close); OHLC and range follow
@@ -552,14 +567,14 @@
         if (!center) return;
         clear(center); var it = i === -1 ? null : items[i];
         center.appendChild(el('div', { style: { fontSize: '12px', color: 'var(--ck-muted)' }, text: it ? it.name : (o.centerLabel || L.total) }));
-        center.appendChild(el('div', { style: { fontSize: '30px', fontWeight: 600, lineHeight: 1, letterSpacing: '-0.025em', color: 'var(--ck-ink)' }, text: it ? (it.value / total * 100).toFixed(1) + '%' : fmt(total, Object.assign({}, f, { unit: undefined })) }));
+        center.appendChild(el('div', { class: 'ck-num', style: { fontSize: '32px', fontWeight: 600, lineHeight: 1, letterSpacing: '-0.025em', color: 'var(--ck-ink)' }, text: it ? (it.value / total * 100).toFixed(1) + '%' : fmt(total, Object.assign({}, f, { unit: undefined })) }));
         center.appendChild(el('div', { class: 'ck-num', style: { fontSize: '12px', color: 'var(--ck-ink2)' }, text: it ? fmt(it.value, f) : items.length + ' ' + L.items + (f.unit ? ' · ' + L.unit + ' ' + f.unit : '') }));
       }
       if (st.view === 'donut') {
         var wrap = el('div', { class: 'ck-donut-wrap' }), holder = el('div', { style: { position: 'relative', width: size + 'px', height: size + 'px', flex: 'none' } });
         var svg = sv('svg', { class: 'ck-plot', width: size, height: size }), a = 0;
         items.forEach(function (it, i) {
-          var a1 = a + it.value / total * Math.PI * 2, p = sv('path', { class: 'ck-mark ck-ring ck-slice', d: arc(a, a1), fill: it.color });
+          var a1 = a + it.value / total * Math.PI * 2, p = sv('path', { class: 'ck-mark ck-ring ck-slice ck-in', style: delay(i * 110), d: arc(a, a1), fill: it.color });
           hitEvents(p, function () { setHover(i); }, function () { setHover(-1); });
           svg.appendChild(p); marks.push(p); a = a1;
         });
@@ -570,9 +585,9 @@
       items.forEach(function (it, i) {
         var row;
         if (st.view === 'donut') {
-          row = el('div', { class: 'ck-row', style: { height: '42px', position: 'relative' } }, [
-            el('div', { class: 'dbar', style: { width: (it.value / max * 100).toFixed(1) + '%' } }),
-            el('i', { class: 'ck-key rect', style: { background: it.color } }), el('span', { class: 'lbl', style: { flex: 1 }, text: it.name }),
+          row = el('div', { class: 'ck-row', style: { height: '44px', position: 'relative', alignItems: 'flex-start', paddingTop: '9px' } }, [
+            el('div', { class: 'dtrk' }, el('div', { class: 'dbar ck-grow', style: { width: (it.value / max * 100).toFixed(1) + '%', background: it.color, animationDelay: (300 + i * 80) + 'ms' } })),
+            el('i', { class: 'ck-key rect', style: { background: it.color, marginTop: '4px' } }), el('span', { class: 'lbl', style: { flex: 1 }, text: it.name }),
             el('span', { class: 'sub ck-num', style: { width: '80px', textAlign: 'right' }, text: fmt(it.value, f) }), el('span', { class: 'val ck-num', style: { width: '56px', textAlign: 'right' }, text: (it.value / total * 100).toFixed(1) + '%' })]);
         } else {
           row = el('div', { class: 'ck-row', style: { flexDirection: 'column', alignItems: 'stretch', gap: '7px', padding: '9px 12px' } }, [
@@ -617,9 +632,9 @@
       var drops = sv('g', { style: 'display:none' }); g.appendChild(drops);
       var marks = [], top = shown.slice().sort(function (a, b) { return b.y - a.y; }).slice(0, labelTop);
       var placed = [];
-      shown.forEach(function (p) {
+      shown.forEach(function (p, pi) {
         var grp = groups[names.indexOf(p.group || L.all)], cx = xOf(p.x), cy = yOf(p.y);
-        var dot = sv('circle', { class: 'ck-mark ck-ring', cx: cx, cy: cy, r: 4.5, fill: grp.color }), hit = sv('circle', { class: 'ck-hit', cx: cx, cy: cy, r: 12 });
+        var dot = sv('circle', { class: 'ck-mark ck-ring ck-in', style: delay(Math.min(600, pi * 12)), cx: cx, cy: cy, r: 4.5, fill: grp.color }), hit = sv('circle', { class: 'ck-hit', cx: cx, cy: cy, r: 12 });
         if (top.indexOf(p) !== -1 && p.name) {
           var lx = cx + (cx > plotW - 60 ? -9 : 9), ly = cy + 4, w = textW(p.name, 11) + 10;
           var x0 = cx > plotW - 60 ? lx - w : lx;
@@ -685,7 +700,7 @@
             line.appendChild(mt);
             return;
           }
-          var cell = el('div', { class: 'cell', style: { width: cellW + 'px', height: cellH + 'px', background: cellBg(v) } });
+          var cell = el('div', { class: 'cell ck-in', style: { width: cellW + 'px', height: cellH + 'px', background: cellBg(v), animationDelay: (ri * 40 + ci * 12) + 'ms' } });
           cell.setAttribute('data-row', r); cell.setAttribute('data-col', c);
           if (o.cellLabels) cell.appendChild(el('span', { class: 'cv ck-num', text: fmt(v, f) }));
           hitEvents(cell, function () {
@@ -742,7 +757,7 @@
             el('div', { class: 'loss' })]);
           list.appendChild(neck);
         }
-        var bar = el('div', { class: 'bar ck-mark', style: { width: pct.toFixed(1) + '%', background: ORDINAL[ci], color: ORDINAL_INK[ci] }, text: inside ? pct.toFixed(1) + '%' : '' });
+        var bar = el('div', { class: 'bar ck-mark ck-in', style: { width: pct.toFixed(1) + '%', background: ORDINAL[ci], color: ORDINAL_INK[ci], animationDelay: (i * 90) + 'ms' }, text: inside ? pct.toFixed(1) + '%' : '' });
         var lane = el('div', { class: 'lane' }, bar);
         if (!inside) lane.appendChild(el('div', { class: 'out ck-num', style: { left: (50 + pct / 2).toFixed(1) + '%' }, text: pct.toFixed(1) + '%' }));
         var loss = el('div', { class: 'loss', style: { opacity: i ? 0.8 : 0 } }, [el('small', { text: L.lostVsPrev }), el('b', { class: 'ck-num', text: i ? '−' + fmt(rows[i].lost, f) + ' · ' + ((1 - rows[i].rel) * 100).toFixed(1) + '%' : '' })]);
@@ -770,9 +785,10 @@
   }
   function renderKpi(container, spec, width) {
     var items = spec.data.items, cols = (spec.options && spec.options.columns) || Math.min(4, items.length);
-    var grid = el('div', { class: 'ck-kpis', style: { width: width + 'px', gridTemplateColumns: 'repeat(' + cols + ', minmax(0, 1fr))' } });
-    items.forEach(function (it) {
-      var tile = el('div', { class: 'ck-kpi' }), good = true, up = true;
+    var grid = el('div', { class: 'ck-kpis' + (motionOn(spec) ? ' ck-motion' : ''), style: { width: width + 'px', gridTemplateColumns: 'repeat(' + cols + ', minmax(0, 1fr))' } });
+    if (grid.classList.contains('ck-motion')) setTimeout(function () { grid.classList.remove('ck-motion'); }, 1800);
+    items.forEach(function (it, ti) {
+      var tile = el('div', { class: 'ck-kpi ck-in', style: { animationDelay: (ti * 90) + 'ms' } }), good = true, up = true;
       if (typeof it.delta === 'number') { up = it.delta >= 0; good = it.deltaGood === false ? !up : up; }
       var top = el('div', { class: 'top' }, el('div', { class: 'l', text: it.label }));
       if (it.trend && it.trend.length > 1) top.appendChild(sparkline(it.trend, 96, 30, typeof it.delta === 'number' ? (good ? 'var(--ck-pos)' : 'var(--ck-neg)') : 'var(--ck-s1)'));
@@ -926,5 +942,5 @@
     container.appendChild(ui.root);
     return ui.root;
   }
-  window.ChartKit = { render: render, fmt: fmt, SERIES: SERIES };
+  window.ChartKit = { render: render, fmt: fmt, SERIES: SERIES, defaults: DEFAULTS };
 })();

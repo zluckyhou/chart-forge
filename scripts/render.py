@@ -6,6 +6,7 @@ Usage:
   python3 render.py a.json b.json -o report.html   # several charts stacked on one page
   python3 render.py spec.json --png                # also screenshots the chart card(s) via Playwright
   python3 render.py spec.json --png --theme dark   # force a theme (default: follows the OS, with an in-page toggle)
+  python3 render.py spec.json --register publish   # publish register: toolbar hidden until hover, never in the PNG
   python3 render.py spec.json --no-webfont         # skip the Google Fonts link (offline / intranet)
   python3 render.py --validate spec.json           # check the spec shape only, render nothing
 
@@ -100,7 +101,7 @@ def validate(spec, path="spec"):
     return errs
 
 
-def build_html(specs, title, page_title, theme, webfont, width):
+def build_html(specs, title, page_title, theme, webfont, width, register="analyse"):
     tpl = read(os.path.join(ASSETS, "templates", "page.html"))
     html = (tpl.replace("{{CSS}}", read(os.path.join(ASSETS, "chartkit.css")))
                .replace("{{JS}}", read(os.path.join(ASSETS, "chartkit.js")))
@@ -108,7 +109,8 @@ def build_html(specs, title, page_title, theme, webfont, width):
                .replace("{{TITLE}}", esc(title)).replace("{{PAGE_TITLE}}", esc(page_title))
                .replace("{{WIDTH}}", str(width))
                .replace("{{FONT_LINK}}", FONT_LINK if webfont else "")
-               .replace("{{THEME_ATTR}}", f' data-theme="{theme}"' if theme in ("light", "dark") else ""))
+               .replace("{{THEME_ATTR}}", f' data-theme="{theme}"' if theme in ("light", "dark") else "")
+               .replace("{{REGISTER}}", register))
     return html
 
 
@@ -124,6 +126,8 @@ def screenshot(html_path, png_path, theme):
     with sync_playwright() as p:
         b = p.chromium.launch()
         pg = b.new_page(viewport={"width": 1400, "height": 1000}, device_scale_factor=2, color_scheme=theme if theme in ("light", "dark") else "light")
+        # a PNG is a still: skip the entrance motion and (in the publish register) the hover-only toolbar
+        pg.add_init_script("document.documentElement.setAttribute('data-motion','off')")
         pg.goto("file://" + os.path.abspath(html_path))
         pg.wait_for_timeout(600)  # webfont swap
         cards = pg.locator(".ck-card, .ck-kpis")
@@ -141,6 +145,7 @@ def main():
     ap.add_argument("-o", "--out", help="output HTML path (required with several specs)")
     ap.add_argument("--png", action="store_true", help="also write a PNG next to the HTML")
     ap.add_argument("--theme", choices=["auto", "light", "dark"], default="auto")
+    ap.add_argument("--register", choices=["analyse", "publish"], default="analyse", help="analyse: toolbar always visible (default); publish: toolbar appears on hover only and never in the PNG")
     ap.add_argument("--no-webfont", action="store_true")
     ap.add_argument("--title", help="page title (defaults to the first spec's title)")
     ap.add_argument("--validate", action="store_true", help="validate only, render nothing")
@@ -170,7 +175,7 @@ def main():
         sys.exit("pass -o when rendering several specs")
     title = a.title or specs[0].get("pageTitle") or specs[0].get("title") or "Chart"
     width = max(int(s.get("width", 720)) for s in specs)
-    html = build_html(specs, title, title, a.theme, not a.no_webfont, width)
+    html = build_html(specs, title, title, a.theme, not a.no_webfont, width, a.register)
     os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
     with open(out, "w", encoding="utf-8") as f:
         f.write(html)

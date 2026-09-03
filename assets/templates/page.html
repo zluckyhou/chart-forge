@@ -25,7 +25,8 @@
 (function () {
   var specs = {{SPECS}};
   var root = document.getElementById('ck-root');
-  root.style.display = 'flex'; root.style.flexDirection = 'column'; root.style.gap = '24px';
+  root.style.display = 'flex'; root.style.flexDirection = 'column'; root.style.gap = '32px';
+  ChartKit.defaults.register = '{{REGISTER}}';
   specs.forEach(function (s) { ChartKit.render(root, s); });
   var btn = document.getElementById('ck-theme-toggle'), html = document.documentElement;
   btn.addEventListener('click', function () {

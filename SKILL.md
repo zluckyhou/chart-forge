@@ -17,6 +17,9 @@ description: >-
 
 One chart = one `spec.json` → `scripts/render.py` → a self-contained interactive HTML file
 (zero dependencies; Google Fonts optional), plus a PNG when you need one.
+The look is editorial, not dashboard: a rounded white card with a hairline edge and no shadow on a warm
+plane, a conclusion title, small-caps annotations and an optional source line, a quiet toolbar, and one
+entrance motion (bars rise, lines draw, slices fade in) after which the chart is still.
 The engine handles *drawing it correctly and making it look good*.
 **What the chart should say, and which form says it, is your job.**
 
@@ -47,9 +50,11 @@ Follow `references/spec.md`. Every type has a runnable example in `assets/exampl
 closest one and swapping the data is the fastest path.
 
 Two lines of copy, never three: **`title`** is the conclusion, **`subtitle`** is the context
-(what is measured · period · unit · provenance). Use `options.highlight` when the story is about one
-entity, `refLines` for a target, `annotations` for the event that explains a turn, and
-`reference: "average"` on a ranking.
+(what is measured · period · unit · provenance). Add **`source`** when the data has a provenance worth
+printing — it becomes a small-caps line under the chart. Use `options.highlight` when the story is about
+one entity, `refLines` for a target, `annotations` for the event that explains a turn, and
+`reference: "average"` on a ranking. One device per chart: a highlight, an annotation *or* a reference
+line carries the story; the others, if present at all, stay quiet.
 
 Chart chrome (buttons, table headers, tooltip labels) follows the language of the spec's own text:
 CJK anywhere → Chinese, otherwise English. Force it with `"lang": "zh" | "en"`.
@@ -65,7 +70,14 @@ python3 scripts/render.py spec.json -o out/chart.html                       # se
 python3 scripts/render.py spec.json -o out/chart.html --png --theme light   # + PNG (needs Playwright)
 python3 scripts/render.py a.json b.json -o out/report.html                  # several charts, one page
 python3 scripts/render.py spec.json -o out/chart.html --no-webfont          # offline / intranet
+python3 scripts/render.py spec.json -o out/chart.html --register publish    # toolbar only on hover, never in the PNG
 ```
+
+Two registers, same spec: **`analyse`** (default) keeps the Table / mode toolbar in view for people who
+will work with the chart; **`publish`** hides it until the pointer arrives and never prints it — use it
+for anything that leaves the browser (PNG, slides, a post). Set it per spec with `"register"` or for a
+whole page with `--register`. `"motion": false` turns the entrance off for one chart; PNG export is
+always still.
 
 **Always look at the result** (the PNG, or a screenshot of the page) and check it against the
 anti-pattern list in `references/rules.md`: is the title a conclusion, do labels collide, is the axis
@@ -84,14 +96,16 @@ the engine to work around a bad spec.
 
 Know these so you do not rebuild them, and so you know what to reach for:
 
-- **Line** — end-of-line labels (series name + latest value, auto-separated when they collide), event
-  annotations, peak marker, target lines, monotone smoothing that never overshoots.
+- **Line** — end-of-line labels (series name + latest value, auto-separated when they collide) stand in
+  for the legend, the lead series carries a dot per period, event annotations in small caps, peak marker,
+  target lines, monotone smoothing that never overshoots.
 - **Bar** — hovering lights the whole category band and lists every series; the latest period is
   direct-labelled; stacks carry totals.
-- **Ranking** — rank numerals, a dashed average/target line through the bars, one highlighted subject
-  with the rest greyed, hover swaps the value for share and distance from the reference.
-- **Donut** — legend rows carry proportional bars, the centre readout follows the hover, one click
-  switches to bars when shares are too close to compare as arcs.
+- **Ranking** — a dashed average/target line through the bars, one highlighted subject with the rest
+  greyed (order is the rank; `rankNumbers: true` prints numerals), hover swaps the value for share and
+  distance from the reference.
+- **Donut** — legend rows carry a share line in the slice's own colour, the centre readout follows the
+  hover, one click switches to bars when shares are too close to compare as arcs.
 - **Scatter** — hover drop-lines to both axes with value chips, automatic labels on the top points
   (skipped when they would overlap), median quadrants.
 - **Heatmap** — eight-step single-hue ramp or a diverging one for signed data, row/column marginal

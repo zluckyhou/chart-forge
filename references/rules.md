@@ -10,7 +10,8 @@ rendered image.
 - Two lines of copy, never three. A third stacked line pushes the chart down and gets skipped anyway.
 - Keep the title short enough to stay on one line (~52 English characters at the default width).
 - Numbers quoted in the title must be readable somewhere in the chart.
-- `note` is for a caveat or a reading hint — not filler.
+- `note` is for a caveat or a reading hint — not filler. `source` is provenance only — a dataset, an
+  export, a report — set in small caps under the chart; leave it out rather than invent one.
 
 ## Colour
 
@@ -45,6 +46,20 @@ rendered image.
 - Hover enhances, it never gates: every value is also reachable from a direct label or the **Table** view.
 - Hit areas are bigger than the marks (24 px around a scatter dot).
 
+## One device per chart
+
+- The story is carried by **one** of: a highlighted entity, an event annotation, a reference line. The
+  engine can draw all three at once; a chart that needs all three has two stories and wants two charts.
+- The palette is the palette. Hierarchy comes from `highlight` (the rest go to the warm grey `dim`), never
+  from tints, ramps across a ranking, gradients under several lines, or a coloured word in the title.
+- Texture is not data: no tick rings in place of arcs, no dot grids in place of bars, no notch patterns.
+  A solid arc with a 2 px gap reads faster than a hundred ticks.
+- Motion is one entrance, then stillness. Nothing loops, nothing pulses, nothing waits for a scroll.
+- Small caps (9.5 px, letter-spaced) are for annotations, reference labels and the source line — never
+  for anything the reader must read to get the number. Minimum for those is 10.5 px.
+- Publishing a chart (`register: publish`, PNG, slides) is a reason to *remove* chrome, not to add
+  decoration: the toolbar goes, the legend folds into the end labels, the rest stays as it was.
+
 ## Anti-patterns — if the output matches one of these, fix it
 
 - A second y-axis. A rainbow ramp for magnitude. More than 8 categorical colours.
@@ -52,3 +67,4 @@ rendered image.
 - Shading nominal categories by size — that encodes length twice and wastes the colour channel.
 - A label clipped by its own bar; a title that is only the metric name; a number on every point.
 - Extra metrics, icons or captions added to fill space.
+- A ramp that shades a ranking by rank, a gradient fill under more than one line, a tick ring, a glow.

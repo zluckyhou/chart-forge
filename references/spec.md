@@ -8,6 +8,9 @@ One spec is one chart. Common fields:
   "title": "The conclusion, in one sentence (required except for kpi)",
   "subtitle": "What is measured · period · unit · provenance",
   "note": "A caveat or a reading hint (optional)",
+  "source": "Provenance, printed as a small-caps line under the chart (optional)",
+  "register": "analyse | publish",
+  "motion": true,
   "width": 720,
   "lang": "zh | en",
   "data": { "…per type" },
@@ -17,6 +20,10 @@ One spec is one chart. Common fields:
 
 `title` + `subtitle` are the whole header — two lines, never three. (A legacy `eyebrow` is folded
 into the front of the subtitle rather than stacking a third line.)
+
+`register` picks how much chrome is in view: `analyse` (default) keeps the Table / mode toolbar visible,
+`publish` shows it only on hover and never in a PNG. `motion` (default true) is the one-time entrance —
+bars rise, lines draw, slices fade in — after which the chart is still; PNG export always renders still.
 
 `lang` controls the chrome only — buttons, table headers, tooltip labels, scale notes. Leave it out
 and the language is detected from the spec's own text: any CJK anywhere → Chinese, otherwise English.
@@ -54,21 +61,22 @@ Stacks print their total above the column.
 ```json
 "data": { "categories": ["Messaging", "Analytics"], "series": [{ "name": "ARR", "values": [1860, 1180] }] },
 "options": {
-  "horizontal": true, "sort": true, "sortToggle": false,
+  "horizontal": true, "sort": true, "sortToggle": false, "rankNumbers": false,
   "highlight": ["Analytics"], "reference": "average",
   "labelWidth": 96, "format": "currency", "currency": "$"
 }
 ```
 
 `reference` is `"average"` or `{ "value": 1000, "label": "Target" }` and draws a dashed line through
-all the bars. Hovering a row swaps its value for share and distance from that reference.
+all the bars. Hovering a row swaps its value for share and distance from that reference. The order of the
+rows is the rank; `rankNumbers: true` prints 01 / 02 / … in front of them as well.
 
 ## line / area
 
 ```json
 "data": { "x": ["2025-01", "2025-02"], "series": [{ "name": "Mobile", "values": [246, 258] }] },
 "options": {
-  "area": false, "smooth": true, "toggle": true, "endLabels": true, "markMax": null,
+  "area": false, "smooth": true, "toggle": true, "endLabels": true, "legend": false, "markMax": null,
   "xTicks": 6, "xLabel": "Month", "format": "number",
   "refLines": [{ "value": 3500, "label": "Quarterly target" }],
   "annotations": [{ "x": "2025-09", "label": "Mobile takes the lead" }],
@@ -77,6 +85,9 @@ all the bars. Hovering a row swaps its value for share and distance from that re
 ```
 
 `type: "area"` is `line` + `area: true`; the fill is a fading gradient, best with one series.
+With `endLabels` on, the end labels *are* the legend and the legend row is not drawn; `legend: true`
+brings it back (it is also the click-to-hide control). The lead series — the highlighted one, else the
+first — is drawn heavier with a dot per period when there is room.
 `markMax` defaults to on for a single series, off for several. An `annotations.x` must be one of the
 values in `data.x`. End labels print the series name and its latest value and are nudged apart when
 they collide.

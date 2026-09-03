@@ -46,19 +46,19 @@ git clone https://github.com/zluckyhou/chart-forge ~/.claude/skills/chart-forge
 ```json
 {
   "type": "line",
-  "title": "Mobile passed desktop in September",
-  "subtitle": "Sessions by device · Jan 2025 – Jun 2026 · thousands · sample data",
+  "title": "Subscriptions passed one-off sales in January",
+  "subtitle": "Monthly revenue by sales model · Jul 2024 – Jun 2026 · $ thousands · sample data",
+  "source": "Chart Forge sample · billing export",
   "data": {
-    "x": ["2025-01", "2025-02", "…", "2026-06"],
+    "x": ["2024-07", "2024-08", "…", "2026-06"],
     "series": [
-      { "name": "Mobile",  "values": [246, 258, "…", 523] },
-      { "name": "Desktop", "values": [418, 412, "…", 318] },
-      { "name": "Tablet",  "values": [92, 91, "…", 67] }
+      { "name": "Subscriptions", "values": [118, 124, "…", 412] },
+      { "name": "One-off sales", "values": [262, 258, "…", 294] }
     ]
   },
   "options": {
-    "format": "number",
-    "annotations": [{ "x": "2025-09", "label": "Mobile takes the lead" }]
+    "format": "currency", "currency": "$",
+    "annotations": [{ "x": "2025-04", "label": "Annual plan launched" }]
   }
 }
 ```
@@ -68,6 +68,7 @@ python3 scripts/render.py chart.json --validate            # 校验：类型、�
 python3 scripts/render.py chart.json -o out/chart.html     # 一个自包含文件
 python3 scripts/render.py chart.json -o out/chart.html --png --theme dark
 python3 scripts/render.py a.json b.json -o out/report.html # 多张图叠成一页
+python3 scripts/render.py chart.json -o out/chart.html --register publish --png   # 发表态：工具栏悬停才出现，PNG 里没有
 ```
 
 分工是关键：**agent 负责「说什么」，skill 负责「怎么画好」。** agent 写结论、选图型、决定强调谁；
@@ -80,7 +81,7 @@ python3 scripts/render.py a.json b.json -o out/report.html # 多张图叠成一�
 
 | | |
 |---|---|
-| **折线 / 面积** —— 末端直接标出系列名和最新值，不用来回找图例；事件标注解释拐点；单调平滑不会过冲。 <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/line-crossover-dark.png"><img alt="折线图" src="assets/gallery/line-crossover.png"></picture> | **排名条** —— 自动排序、带序号，只高亮结论对象、其余退灰，一条虚线平均值贯穿所有条。悬停把数值换成占比与相对平均的差距。 <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/bar-ranking-dark.png"><img alt="排名条" src="assets/gallery/bar-ranking.png"></picture> |
+| **折线 / 面积** —— 末端直接标出系列名和最新值，图例并入线尾；主角线每期一个点；事件标注用小号大写字说明拐点；单调平滑不会过冲。 <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/line-crossover-dark.png"><img alt="折线图" src="assets/gallery/line-crossover.png"></picture> | **排名条** —— 自动排序（顺序就是名次），只高亮结论对象、其余退灰，一条虚线平均值贯穿所有条。悬停把数值换成占比与相对平均的差距。 <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/bar-ranking-dark.png"><img alt="排名条" src="assets/gallery/bar-ranking.png"></picture> |
 | **柱状** —— 同一份规格可切分组或堆叠；悬停点亮整列光带并列出所有系列；最新一期直接标值。 <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/bar-grouped-dark.png"><img alt="分组柱状图" src="assets/gallery/bar-grouped.png"></picture> | **漏斗** —— 两步之间的「颈部」形状就是流失，单步转化率写在颈部里，流失最多的一步自动打标。 <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/funnel-checkout-dark.png"><img alt="漏斗图" src="assets/gallery/funnel-checkout.png"></picture> |
 | **热力图** —— 单色由浅到深，右侧与底部的边际条让「最忙的一天、最忙的时段」一眼可见；有符号数据用发散色阶。 <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/heatmap-hours-dark.png"><img alt="热力图" src="assets/gallery/heatmap-hours.png"></picture> | **散点** —— 悬停向两轴投出引线与坐标气泡；头部点自动标注，会重叠时自动跳过；中位线把画面切成四象限。 <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/scatter-roi-dark.png"><img alt="散点图" src="assets/gallery/scatter-roi.png"></picture> |
 | **环形** —— 图例每行自带占比数据条，中心读数跟随指针；占比太接近时一键切成条形比较。 <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/donut-share-dark.png"><img alt="环形图" src="assets/gallery/donut-share.png"></picture> | **数据表** —— 粘性表头与首列、可跨列共享标尺的格内条、标签、二级表头、点击排序。 <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/table-experiment-dark.png"><img alt="数据表" src="assets/gallery/table-experiment.png"></picture> |
@@ -95,6 +96,9 @@ python3 scripts/render.py a.json b.json -o out/report.html # 多张图叠成一�
 - **颜色跟随实体，不跟随名次。** 隐藏一个系列，其余颜色不会重新分配。
 - **永远没有第二根 Y 轴。** 量级差很远的两个指标，要么两张图，要么统一指数化。
 - **每张图都有表格孪生。** 悬停只增强不独占：所有数值都能用键盘读到，也照顾无法悬停的读者。
+- **编辑部感，不是后台感。** 暖白底上一张圆角、发丝边、无阴影的卡片；工具栏安静（`publish` 态悬停才出现）；
+  标注和 `source` 来源行用小号大写字；加载时一次入场（柱生长、线描入、弧渐现），之后静止。
+  两个寄存器共用同一套色板和图形，只有 chrome 不同。
 
 完整规则与反模式清单见 [`references/rules.md`](references/rules.md)；「该用哪种图」的决策表见
 [`references/choosing-a-form.md`](references/choosing-a-form.md)；规格逐字段说明见
