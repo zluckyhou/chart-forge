@@ -7,9 +7,13 @@
   --ck-plane: #fbfaf7; --ck-surface: #ffffff; --ck-surface-2: #f7f6f2; --ck-tip-bg: #1c1c21; --ck-tip-ink: #f4f4f2; --ck-tip-muted: #a3a39c;
   --ck-ink: #16161a; --ck-ink2: #55554f; --ck-muted: #8a8983; --ck-faint: #b4b3ab;
   --ck-grid: #e7e6df; --ck-axis: #cfcec6; --ck-ring: rgba(22,22,26,0.08); --ck-wash: rgba(22,22,26,0.05); --ck-wash-2: rgba(22,22,26,0.09);
+  --ck-lift: 0 1px 2px rgba(22,22,26,0.05), 0 10px 26px -14px rgba(22,22,26,0.26);
+  --ck-lift-2: 0 2px 4px rgba(22,22,26,0.06), 0 20px 44px -18px rgba(22,22,26,0.32);
+  --ck-contact: rgba(22,22,26,0.17); --ck-spec: rgba(255,255,255,0.30);
   --ck-shadow: none;
   --ck-s1: #2f6fe4; --ck-s2: #ee7146; --ck-s3: #1aa37f; --ck-s4: #e8a400; --ck-s5: #e57aa6; --ck-s6: #1f8a1f; --ck-s7: #5b4bc4; --ck-s8: #e04b4b;
   --ck-dim: #c9c8c0; --ck-other: #c3c2b7;
+  --ck-b1: #2e6fe8; --ck-b2: #ef6b3c; --ck-b3: #2aa98a; --ck-b4: #8b4fec; --ck-b5: #e99f2a; --ck-b6: #e95995; --ck-b7: #30a641; --ck-b8: #915423;
   --ck-q0: #efeee9; --ck-q1: #d4e2fb; --ck-q2: #aac6f6; --ck-q3: #7fa8ef; --ck-q4: #5189e8; --ck-q5: #2f6fe4; --ck-q6: #2357b8; --ck-q7: #183f8c;
   --ck-o1: #93b4f2; --ck-o2: #6a98ec; --ck-o3: #3f7ae6; --ck-o4: #2a5fcc; --ck-o5: #1f47a3; --ck-o6: #163478;
   --ck-pos: #0f7a2e; --ck-pos-bg: rgba(15,122,46,0.10); --ck-neg: #c8383a; --ck-neg-bg: rgba(200,56,58,0.10); --ck-mid: #efeee9;
@@ -20,9 +24,14 @@
     --ck-plane: #0f1013; --ck-surface: #17181c; --ck-surface-2: #1e1f24; --ck-tip-bg: #2a2b31; --ck-tip-ink: #f4f4f2; --ck-tip-muted: #9d9d97;
     --ck-ink: #f4f4f2; --ck-ink2: #c2c1b9; --ck-muted: #8b8a84; --ck-faint: #5f5e59;
     --ck-grid: #25262b; --ck-axis: #34353b; --ck-ring: rgba(255,255,255,0.08); --ck-wash: rgba(255,255,255,0.06); --ck-wash-2: rgba(255,255,255,0.10);
+    --ck-lift: 0 1px 2px rgba(0,0,0,0.5), 0 10px 26px -14px rgba(0,0,0,0.8);
+    --ck-lift-2: 0 2px 4px rgba(0,0,0,0.55), 0 20px 44px -18px rgba(0,0,0,0.9);
+    --ck-contact: rgba(0,0,0,0.42); --ck-spec: rgba(255,255,255,0.22);
     --ck-shadow: none;
     --ck-s1: #4d8cf0; --ck-s2: #e2673c; --ck-s3: #1f9f7c; --ck-s4: #c28500; --ck-s5: #d26393; --ck-s6: #3fa83f; --ck-s7: #8c7fe6; --ck-s8: #e45c5c;
     --ck-dim: #3a3b41; --ck-other: #52514e;
+  --ck-b1: #548ff2; --ck-b2: #ec5d2d; --ck-b3: #2fa789; --ck-b4: #a073f2; --ck-b5: #c87f0f; --ck-b6: #da1768; --ck-b7: #43aa52; --ck-b8: #a46937;
+    --ck-b1: #548ff2; --ck-b2: #ec5d2d; --ck-b3: #2fa789; --ck-b4: #a073f2; --ck-b5: #c87f0f; --ck-b6: #da1768; --ck-b7: #43aa52; --ck-b8: #a46937;
     --ck-q0: #202126; --ck-q1: #1a3a70; --ck-q2: #1d4a9e; --ck-q3: #275dc4; --ck-q4: #3474e2; --ck-q5: #5a93ea; --ck-q6: #86adf0; --ck-q7: #b3cbf7;
     --ck-o1: #b3cbf7; --ck-o2: #86adf0; --ck-o3: #5a93ea; --ck-o4: #3474e2; --ck-o5: #275dc4; --ck-o6: #1d4a9e;
     --ck-pos: #3dbb5f; --ck-pos-bg: rgba(61,187,95,0.14); --ck-neg: #ee6b6d; --ck-neg-bg: rgba(238,107,109,0.14); --ck-mid: #2c2d33; }
@@ -31,6 +40,9 @@
   --ck-plane: #0f1013; --ck-surface: #17181c; --ck-surface-2: #1e1f24; --ck-tip-bg: #2a2b31; --ck-tip-ink: #f4f4f2; --ck-tip-muted: #9d9d97;
   --ck-ink: #f4f4f2; --ck-ink2: #c2c1b9; --ck-muted: #8b8a84; --ck-faint: #5f5e59;
   --ck-grid: #25262b; --ck-axis: #34353b; --ck-ring: rgba(255,255,255,0.08); --ck-wash: rgba(255,255,255,0.06); --ck-wash-2: rgba(255,255,255,0.10);
+  --ck-lift: 0 1px 2px rgba(0,0,0,0.5), 0 10px 26px -14px rgba(0,0,0,0.8);
+  --ck-lift-2: 0 2px 4px rgba(0,0,0,0.55), 0 20px 44px -18px rgba(0,0,0,0.9);
+  --ck-contact: rgba(0,0,0,0.42); --ck-spec: rgba(255,255,255,0.22);
   --ck-shadow: none;
   --ck-s1: #4d8cf0; --ck-s2: #e2673c; --ck-s3: #1f9f7c; --ck-s4: #c28500; --ck-s5: #d26393; --ck-s6: #3fa83f; --ck-s7: #8c7fe6; --ck-s8: #e45c5c;
   --ck-dim: #3a3b41; --ck-other: #52514e;
@@ -46,7 +58,7 @@
 .ck-theme:hover { background: var(--ck-surface-2); }
 
 /* ---------- card ---------- */
-.ck-card { position: relative; box-sizing: border-box; margin: 0; padding: 26px 30px 26px; border-radius: 18px; background: var(--ck-surface); box-shadow: 0 0 0 1px var(--ck-ring); color: var(--ck-ink); font-family: var(--ck-font); display: flex; flex-direction: column; gap: 18px; }
+.ck-card { position: relative; box-sizing: border-box; margin: 0; padding: 26px 30px 26px; border-radius: 22px; background: var(--ck-surface); box-shadow: 0 0 0 1px var(--ck-ring), var(--ck-lift); color: var(--ck-ink); font-family: var(--ck-font); display: flex; flex-direction: column; gap: 18px; }
 /* publish register: the chrome stays out of the picture until the pointer arrives; PNG export never sees it */
 .ck-card[data-register="publish"] .ck-controls { opacity: 0; transition: opacity 0.2s; }
 .ck-card[data-register="publish"]:hover .ck-controls, .ck-card[data-register="publish"]:focus-within .ck-controls { opacity: 1; }
@@ -71,7 +83,9 @@
 .ck-legend button:hover { background: var(--ck-wash); }
 .ck-legend button[aria-pressed="false"] { opacity: 0.38; }
 .ck-key { display: inline-block; flex: none; }
-.ck-key.rect { width: 10px; height: 10px; border-radius: 3px; }
+/* One radius family, DOM marks included: 0.34 x short side, capped at 6px — past that a grid
+ * cell loses enough area that a dense field reads patchy, which a heatmap must never do. */
+.ck-key.rect { width: 10px; height: 10px; border-radius: 3.4px; }
 .ck-key.line { width: 14px; height: 3px; border-radius: 2px; }
 .ck-key.dot { width: 9px; height: 9px; border-radius: 50%; }
 .ck-body { position: relative; }
@@ -163,7 +177,7 @@
 .ck-row.dim { opacity: 0.4; }
 .ck-row .lbl { flex: none; font-size: 13px; color: var(--ck-ink2); }
 .ck-row .trk { flex: 1; position: relative; height: 14px; }
-.ck-row .fill { height: 14px; border-radius: 3px; transition: width 0.3s; }
+.ck-row .fill { height: 14px; border-radius: 4.8px; transition: width 0.3s; }
 .ck-row .val { flex: none; text-align: right; font-size: 13px; font-weight: 600; color: var(--ck-ink); }
 .ck-row .sub { font-size: 12px; color: var(--ck-muted); font-weight: 400; }
 .ck-funnel .step { display: flex; align-items: center; gap: 16px; height: 62px; padding: 0 12px; border-radius: 10px; cursor: pointer; outline: none; transition: background 0.15s; }
@@ -183,7 +197,12 @@
 
 /* ---------- kpi tiles ---------- */
 .ck-kpis { display: grid; gap: 16px; }
-.ck-kpi { display: flex; flex-direction: column; gap: 12px; padding: 22px 24px; border-radius: 18px; background: var(--ck-surface); box-shadow: 0 0 0 1px var(--ck-ring); font-family: var(--ck-font); }
+.ck-kpi { display: flex; flex-direction: column; gap: 12px; padding: 22px 24px; border-radius: 22px; background: var(--ck-surface); box-shadow: 0 0 0 1px var(--ck-ring), var(--ck-lift); font-family: var(--ck-font); }
+.ck-kpi[data-cast] { background: color-mix(in srgb, var(--ck-kc, var(--ck-s1)) 6%, var(--ck-surface)); }
+.ck-kpi .top { align-items: center; }
+.ck-kpi .id { display: inline-flex; align-items: center; gap: 8px; min-width: 0; flex: 1 1 auto; }
+.ck-kpi .id .l { min-width: 0; }
+.ck-kpi .id .ck-cast { width: 22px; height: 22px; flex: none; }
 .ck-kpi .l { font-size: 13px; color: var(--ck-ink2); }
 .ck-kpi .v { font-size: 34px; font-weight: 600; line-height: 1; letter-spacing: -0.025em; color: var(--ck-ink); }
 .ck-kpi .v.hero { font-size: 48px; }
@@ -204,7 +223,7 @@
 .ck-heat { display: flex; flex-direction: column; gap: 3px; }
 .ck-heat .hr { display: flex; align-items: center; gap: 3px; }
 .ck-heat .hl { flex: none; font-size: 11.5px; color: var(--ck-muted); text-align: right; padding-right: 8px; }
-.ck-heat .cell { border-radius: 4px; cursor: pointer; outline: none; transition: transform 0.12s; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.ck-heat .cell { border-radius: 6px; cursor: pointer; outline: none; transition: transform 0.12s; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .ck-heat .cell .cv { font-size: 10.5px; font-weight: 600; color: var(--ck-ink); opacity: 0.85; }
 .ck-heat .cell.empty { background: transparent; box-shadow: inset 0 0 0 1px var(--ck-grid); cursor: default; }
 .ck-heat .cell.empty:hover { transform: none; box-shadow: inset 0 0 0 1px var(--ck-grid); }
@@ -271,3 +290,58 @@
 @keyframes ck-draw { to { stroke-dashoffset: 0; } }
 @media (prefers-reduced-motion: reduce) { .ck-motion .ck-in, .ck-motion .ck-rise, .ck-motion .ck-grow, .ck-motion .ck-draw { animation: none; stroke-dasharray: none; stroke-dashoffset: 0; } }
 [data-motion="off"] .ck-motion .ck-in, [data-motion="off"] .ck-motion .ck-rise, [data-motion="off"] .ck-motion .ck-grow, [data-motion="off"] .ck-motion .ck-draw { animation: none; stroke-dasharray: none; stroke-dashoffset: 0; }
+
+
+/* ================= PLUMP MARKS =================
+ * Element layer shared by EVERY form: one radius family, one end token, one stroke scale,
+ * one negative-space rule, container-only elevation, one state vocabulary.
+ * The volumetric cues are dosed by aspect ratio and always run PERPENDICULAR to the
+ * encoding axis — a vertical bar may shade across its width, never along its height. */
+
+/* ---------- cast: 8 silhouettes x 5 expressions, one object at three sizes ---------- */
+.ck-cast { display: block; flex: none; overflow: visible; }
+.ck-legend .ck-cast { width: 14px; height: 14px; }   /* <= 14px: silhouette only, eyes stop reading */
+/* Ranking: the head slot is reserved on every row so the bars keep one origin — only the
+ * subject of the sentence actually gets a character in it. */
+.ck-head { width: 26px; flex: none; display: flex; align-items: center; justify-content: center; }
+.ck-head .ck-cast { width: 20px; height: 20px; }
+
+/* ---------- unit / waffle / status wall: the mark IS the unit ---------- */
+.ck-units { display: block; overflow: visible; }
+.ck-units .ck-cell { transition: opacity 0.15s; }
+.ck-units .ck-cell.dim { opacity: 0.26; }
+.ck-unitleg { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.ck-unitleg button { display: inline-flex; align-items: center; gap: 7px; height: 24px; padding: 0 8px 0 6px; border: 0; border-radius: 999px; background: transparent; color: var(--ck-ink2); font: 500 12px var(--ck-font); cursor: pointer; transition: opacity 0.15s, background 0.15s; }
+.ck-unitleg button:hover { background: var(--ck-wash); }
+.ck-unitleg button[aria-pressed="false"] { opacity: 0.38; }
+.ck-unitleg .n { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--ck-ink); }
+.ck-scale { margin: 0; font-size: 11.5px; color: var(--ck-muted); }
+
+/* ---------- states: motion is a STATE channel, never decoration ----------
+ * Every keyframe moves scaleX / opacity / saturate only. Nothing here touches the
+ * encoding axis, so a mark's top edge is the true value at every frame.
+ * No state attribute -> no motion at all: a settled chart is still (see rules.md). */
+@keyframes ck-breathe { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(0.90); } }
+@keyframes ck-pulse   { 0%, 100% { opacity: 1; } 50% { opacity: 0.42; } }
+@keyframes ck-nudge   { 0%, 100% { transform: translateX(0); } 22% { transform: translateX(-2.6px); } 44% { transform: translateX(2.6px); } 70% { transform: translateX(-1.4px); } }
+@keyframes ck-sweep   { from { transform: translateX(-14%); } to { transform: translateX(114%); } }
+.ck-card[data-state] .ck-mark, .ck-card[data-state] .ck-cell { transform-box: fill-box; transform-origin: 50% 50%; }
+.ck-card[data-state="load"]    .ck-plot, .ck-card[data-state="load"] .ck-units { opacity: 0.24; }
+.ck-card[data-state="load"]    .ck-vlabel, .ck-card[data-state="load"] .ck-end, .ck-card[data-state="load"] .ck-total { opacity: 0; }
+.ck-card[data-state="stale"]   .ck-plot, .ck-card[data-state="stale"] .ck-units { opacity: 0.5; filter: saturate(0.4); }
+.ck-card[data-state="error"]   .ck-plot, .ck-card[data-state="error"] .ck-units { opacity: 0.5; filter: saturate(0.35); }
+.ck-state { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px; background: var(--ck-wash); color: var(--ck-ink2); font: 500 11px var(--ck-font); }
+.ck-state i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none; }
+.ck-card[data-state="error"] .ck-state { color: var(--ck-neg); background: var(--ck-neg-bg); }
+.ck-card[data-state="stale"] .ck-state { color: var(--ck-muted); }
+.ck-sweepband { position: absolute; inset: 0 auto 0 0; width: 22%; pointer-events: none; opacity: 0; z-index: 1;
+  background: linear-gradient(90deg, transparent, var(--ck-spec), transparent); }
+@media (prefers-reduced-motion: no-preference) {
+  .ck-card[data-state="load"]    .ck-mark, .ck-card[data-state="load"] .ck-cell { animation: ck-breathe 1.7s ease-in-out infinite; }
+  .ck-card[data-state="refresh"] .ck-mark, .ck-card[data-state="refresh"] .ck-cell { animation: ck-breathe 1.1s ease-in-out infinite; }
+  .ck-card[data-state="stale"]   .ck-mark, .ck-card[data-state="stale"] .ck-cell { animation: ck-breathe 6.5s ease-in-out infinite; }
+  .ck-card[data-state="stream"]  .ck-mark.ck-last { animation: ck-pulse 1.05s ease-in-out infinite; }
+  .ck-card[data-state="error"]   .ck-mark.ck-last { animation: ck-nudge 0.5s ease-out 1; }
+  .ck-card[data-state="refresh"] .ck-sweepband { opacity: 1; animation: ck-sweep 1.3s linear infinite; }
+}
+[data-motion="off"] .ck-card[data-state] .ck-mark, [data-motion="off"] .ck-card[data-state] .ck-cell { animation: none !important; }

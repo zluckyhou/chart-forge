@@ -29,8 +29,18 @@ rendered image.
 
 ## Marks and layout
 
-- Bars ≤ 30 px, lines 2 px, dots ≥ 8 px. Separate touching fills with a 2 px gap in the surface colour,
-  never with a stroke.
+- **One element scale, every form.** Bars ≤ 26 px and never more than 0.60 of their slot — past that the
+  gaps read as slots rather than the bars reading as objects. Corner radius is `0.38 × bar width`
+  (`0.34 × short side` for a block); **0.5 makes a semicircle and the bar reads as a finger** — that is the
+  ceiling, not the target. Lines 2.4 px lead / 2.0 px others, candle wicks 1.4 px, dots ≥ 10 px.
+  Separate touching fills with a 2 px gap in the surface colour, never with a stroke.
+- **Volume is dosed by aspect ratio.** A 1:1 mark (KPI token, legend key, unit cell, scatter dot) takes the
+  full treatment; a 1:4 bar takes about a third of it and no specular. Applying a 1:1 dose to a long thin
+  mark is what makes it look like a plastic cylinder.
+- **The axis rule.** Any volumetric cue — gradient, contact shadow, state motion — runs **perpendicular to
+  the encoding axis**. A vertical bar encodes height, so it may shade across its width and breathe in
+  `scaleX`; shading or scaling it along its height moves the reading. Sides may bulge because width encodes
+  nothing. A contact shadow lives entirely below the shared baseline and is identical under every mark.
 - Gridlines are hairlines one step off the surface; keep the baseline plus 4–6 lines. Ticks land on
   round numbers automatically.
 - Direct-label selectively: the end of a line, the peak, the latest period, the top few points — never
@@ -48,17 +58,54 @@ rendered image.
 
 ## One device per chart
 
-- The story is carried by **one** of: a highlighted entity, an event annotation, a reference line. The
-  engine can draw all three at once; a chart that needs all three has two stories and wants two charts.
+- The story is carried by **one** of: a highlighted entity, an event annotation, a reference line, or one
+  cast **expression**. The engine can draw all of them at once; a chart that needs all of them has two
+  stories and wants two charts. A cast *silhouette* is identity, not a device, and is not rationed the
+  same way — but expressions are: ten faces in a ranking is ten faces and no story.
 - The palette is the palette. Hierarchy comes from `highlight` (the rest go to the warm grey `dim`), never
   from tints, ramps across a ranking, gradients under several lines, or a coloured word in the title.
-- Texture is not data: no tick rings in place of arcs, no dot grids in place of bars, no notch patterns.
-  A solid arc with a 2 px gap reads faster than a hundred ticks.
-- Motion is one entrance, then stillness. Nothing loops, nothing pulses, nothing waits for a scroll.
+  `finish: "soft"` is not hierarchy — it is a lateral sheen of ±7 % on every mark equally, and it is off
+  by default.
+- Texture is not data: no tick rings in place of arcs, no notch patterns, no dot grid used as *decoration*
+  behind or instead of a bar. A solid arc with a 2 px gap reads faster than a hundred ticks.
+  **A unit chart is not texture** — there each mark is one counted unit and the reader counts objects
+  instead of measuring an edge. That is a different encoding, and it has its own gate below.
+- Motion is one entrance, then stillness. Nothing loops, nothing pulses, nothing waits for a scroll —
+  **unless the chart is carrying a `state`**, which is a channel, not decoration. `load / stream / stale /
+  refresh / error` let the marks report their own condition instead of a skeleton overlay or a spinner, and
+  they obey the axis rule above. A settled chart has no `state` and therefore does not move. A state never
+  relies on motion alone: it always ships a word too, for reduced-motion and for the PNG.
 - Small caps (9.5 px, letter-spaced) are for annotations, reference labels and the source line — never
   for anything the reader must read to get the number. Minimum for those is 10.5 px.
 - Publishing a chart (`register: publish`, PNG, slides) is a reason to *remove* chrome, not to add
   decoration: the toolbar goes, the legend folds into the end labels, the rest stays as it was.
+
+## Shape as the second categorical channel
+
+- Shape follows the entity exactly as colour does, and the two are **redundant**: the chart then survives
+  greyscale, colour blindness and a badly calibrated projector. `palette.json → shape.order` fixes the
+  slot order; slot 3 is always the triangle whether or not slots 1–2 are on screen.
+- **Shape encodes a class, never a magnitude.** A density or heat grid keeps one silhouette throughout —
+  a second one sends the reader hunting for a grouping that is not there. `dotmatrix` is built this way
+  on purpose.
+- **Normalise optical area first.** A triangle fills about half of what a rounded square does; in a unit
+  chart one mark is one unit, so an un-normalised triangle group silently reads as half its count. The
+  factors live in `palette.json → shape.area_norm` and the engine applies them. Leave room in the cell
+  gap for the largest factor (the triangle, ×1.28).
+- Off below 14 px — the silhouettes stop separating and only colour is left. Off past 4 groups — they
+  start interfering; fold the tail into Other.
+
+## The unit family — waffle / unit / dotmatrix / statuswall
+
+- Use them only for a **countable** quantity: counts, shares, densities, discrete states. A continuous
+  measure cannot be cut into marks (you cannot draw 3.7 °C or ¥168.42), and a time series is read as a
+  trend, not a tally — those stay with line, area and candle.
+- Keep the marks countable: roughly **150 marks per chart** and **30 per column** is where counting stops
+  and estimating starts, and a bar chart estimates better. `render.py --validate` enforces both.
+- One mark stands for a round number. "One mark = 37.4" is not a unit.
+- The remainder mark is **part-filled, never rounded away**, and the exact value is still printed.
+- A status wall never encodes severity by colour alone — that is the classic colour-blindness trap. Every
+  state carries its own silhouette and its own word.
 
 ## Anti-patterns — if the output matches one of these, fix it
 
@@ -68,3 +115,14 @@ rendered image.
 - A label clipped by its own bar; a title that is only the metric name; a number on every point.
 - Extra metrics, icons or captions added to fill space.
 - A ramp that shades a ranking by rank, a gradient fill under more than one line, a tick ring, a glow.
+- A gradient or shadow running **along** a bar's length; a drop shadow on a mark; any perspective or
+  isometric projection. A bar-top radius at half the bar width (it reads as a finger).
+- A cast member sitting *beside* the element it stands for instead of replacing it — an end dot **and** a
+  character, a legend swatch **and** a character. That is a sticker, not an identity.
+- A cast member used as a **container**: the number bursts out of the silhouette and the label and delta
+  end up orphaned outside it. The card is the container; the character is a 22 px token inside it.
+- A cast member riding the tip of a bar or the end of a ranking row — it lends the mark length it does not
+  have. Heads go on the axis side of the shared origin, in a slot reserved on every row.
+- A cast member on a funnel step, a heat cell or a matrix cell: those encode order or magnitude, and shape
+  encodes neither.
+- Shape used for a magnitude, or unit marks so numerous nobody counts them.

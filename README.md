@@ -82,9 +82,9 @@ agent writes the conclusion, chooses the form and decides what to emphasise; axi
 collisions, hit areas, hover layers, the table twin, the dark palette and the export are already
 handled, identically in every chart.
 
-## The eleven forms
+## The fifteen forms
 
-Ten `type` values (ranking is `bar` with `horizontal: true`), each with a runnable spec in
+Fourteen `type` values (ranking is `bar` with `horizontal: true`), each with a runnable spec in
 [`assets/examples/`](assets/examples).
 
 | | |
@@ -94,6 +94,41 @@ Ten `type` values (ranking is `bar` with `horizontal: true`), each with a runnab
 | **Heatmap** — one hue light to dark, with row and column marginal bars so the busiest day and hour read at a glance; a diverging scale for signed data. <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/heatmap-hours-dark.png"><img alt="Heatmap" src="assets/gallery/heatmap-hours.png"></picture> | **Scatter** — hovering drops guides to both axes with value chips; the top points label themselves and skip the label when it would overlap; medians split the plot into quadrants. <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/scatter-roi-dark.png"><img alt="Scatter plot" src="assets/gallery/scatter-roi.png"></picture> |
 | **Donut** — legend rows carry a share line in the slice's own colour and the centre readout follows the pointer; one click switches to bars when the shares are too close to compare as arcs. <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/donut-share-dark.png"><img alt="Donut chart" src="assets/gallery/donut-share.png"></picture> | **Table** — sticky header and first column, in-cell bars that can share one scale across columns, tags, two-level headers, click-to-sort. <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/table-experiment-dark.png"><img alt="Data table" src="assets/gallery/table-experiment.png"></picture> |
 | **Candlestick** — OHLC with a trading-app tooltip and an axis that frames the range instead of anchoring at zero. Red-up by default, `colors: "intl"` flips it. <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/candle-price-dark.png"><img alt="Candlestick chart" src="assets/gallery/candle-price.png"></picture> | **KPI tiles** — value, a signed pill that knows whether up is good, and a sparkline tinted by that judgement. <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/kpi-tiles-dark.png"><img alt="KPI tiles" src="assets/gallery/kpi-tiles.png"></picture> |
+
+### The unit family — when the reader should *count*
+
+A bar makes you measure an edge. When the quantity is countable, one mark per thing is both easier to read
+and honest about what it is: shares whose slices are close, small counts, discrete states. Every mark here
+is 1:1, which is also why **shape works as a second channel** — colour and silhouette say the same thing,
+so the chart survives greyscale, colour blindness and a bad projector.
+
+| | |
+|---|---|
+| **Waffle** — 100 marks = 100 %, filled bottom-up so the block reads as a level rising. Optical area is normalised per silhouette, because a triangle fills about half of what a rounded square does and would otherwise read as half its count. <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/waffle-revenue-mix-dark.png"><img alt="Waffle chart" src="assets/gallery/waffle-revenue-mix.png"></picture> | **Unit columns** — one mark per thing, stacked by series with a silhouette per series. The remainder is part-filled over a ghost, so 216 at 40-per-mark is five marks and a sliver, never a rounded 200. <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/unit-signups-dark.png"><img alt="Unit column chart" src="assets/gallery/unit-signups.png"></picture> |
+| **Dot matrix** — size *and* shade both grow with the value, so it survives greyscale and shrinks well. One silhouette throughout, on purpose: density is a magnitude, and a second shape would imply a grouping that is not there. <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/dotmatrix-hours-dark.png"><img alt="Dot matrix" src="assets/gallery/dotmatrix-hours.png"></picture> | **Status wall** — every state carries its own silhouette as well as its colour, because severity encoded by red/amber/green alone is the classic colour-blindness failure. <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/statuswall-services-dark.png"><img alt="Status wall" src="assets/gallery/statuswall-services.png"></picture> |
+
+`--validate` keeps them countable: ≤ 200 waffle cells, ≤ 30 marks in the tallest unit column, ≤ 4 unit
+series, ≤ 5 wall states. Past that nobody counts — they estimate, and a bar chart estimates better.
+Continuous measures (prices, rates, anything with a meaningful decimal) never join this family.
+
+### One element layer, every form
+
+A candlestick and a waffle look like the same product because they share constants, not shapes: one radius
+family (`0.34 × short side` for a block, `0.38 × bar width` — `0.5` makes a semicircle and the bar reads as
+a finger), one end token, one stroke scale, negative-space labels in the surface colour, elevation on
+containers only, one palette, and one state vocabulary.
+
+Three opt-ins sit on top, all off by default. `finish: "soft"` adds a volumetric pass; **it runs
+perpendicular to the encoding axis** — a vertical bar shades across its width, never along its height, and
+its contact shadow lives entirely below the shared baseline, so no reading moves. `palette: "bloom"` swaps
+in a saturated alternative set, gated by the same validator as the default. `cast: true` turns on eight
+silhouettes as identity tokens that always **replace** an element — the end dot, the legend key, the KPI
+badge — rather than sit beside one.
+
+`state: "load | stream | stale | refresh | error"` lets the marks report live condition instead of a
+skeleton overlay: `stream` pulses only the newest mark and withholds its number until it lands, `stale`
+desaturates and slows to a 6.5 s breath. Every keyframe moves `scaleX`, opacity or saturation only, and
+every state ships a word as well as motion, so it holds under `prefers-reduced-motion` and in the PNG.
 
 ## Why they read faster than a default chart
 

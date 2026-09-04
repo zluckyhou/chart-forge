@@ -11,6 +11,7 @@ One spec is one chart. Common fields:
   "source": "Provenance, printed as a small-caps line under the chart (optional)",
   "register": "analyse | publish",
   "motion": true,
+  "state": "load | stream | stale | refresh | error",
   "width": 720,
   "lang": "zh | en",
   "data": { "…per type" },
@@ -24,6 +25,47 @@ into the front of the subtitle rather than stacking a third line.)
 `register` picks how much chrome is in view: `analyse` (default) keeps the Table / mode toolbar visible,
 `publish` shows it only on hover and never in a PNG. `motion` (default true) is the one-time entrance —
 bars rise, lines draw, slices fade in — after which the chart is still; PNG export always renders still.
+
+`state` is the live condition of the data, and it is a *channel*, not decoration: the marks report it
+themselves instead of a skeleton overlay or a spinner. `load` dims the plot to a breathing placeholder and
+hides the labels, `stream` pulses only the newest mark (its number is withheld until it lands), `refresh`
+runs a sweep, `stale` desaturates and slows to a 6.5 s breath, `error` nudges the last mark once and dims.
+Every keyframe moves `scaleX` / opacity / saturation only, so **the top edge of a mark is the true value at
+every frame**. A state always ships a word as well as motion, so it survives `prefers-reduced-motion` and
+the PNG. Leave `state` out and the chart is still, exactly as before.
+
+Three options are shared by every type, all off by default:
+
+- **`options.finish: "soft"`** adds the volumetric pass — a lateral sheen and a contact shadow under the
+  baseline. It runs *perpendicular to the encoding axis* and is dosed by the mark's aspect ratio, so it
+  changes no reading. Flat stays the default and remains right for anything editorial.
+- **`options.palette: "bloom"`** switches to the saturated alternative set. Same slot-order discipline,
+  gated by the same validator (`scripts/validate_palette.py --set bloom`).
+- **`options.cast: true`** turns on the cast — eight silhouettes bound to the eight colour slots. It always
+  **replaces** an element, never joins one: the end dot of a line *becomes* the character, the legend key
+  *becomes* the character, the KPI badge *becomes* the character. Its geometric centre sits on the datum,
+  so position is still the value. Pass an object to pin shapes by series or item name:
+  `"cast": {"Subscriptions": "circle", "One-off": "droplet"}`. The card is always the container — never
+  let the character be the tile.
+
+  The cast splits into two roles, and they have different budgets:
+
+  | Role | What it is | Budget |
+  |---|---|---|
+  | **Silhouette** | identity — which series/item/state this is | one per entity, up to the shape cap (4 in a grid, 8 overall) |
+  | **Expression** | the story — good / bad / flat / waiting / asleep | **one per chart**, on the subject, same budget as a highlight or an annotation |
+
+  Where it lands, by type:
+
+  | Type | Cast appears as |
+  |---|---|
+  | `line` / `area` | the end token — it *is* the last-point dot, ringed in the surface colour |
+  | `bar`, `candle`, `scatter` | legend keys (`scatter` also swaps the dots for silhouettes). **Never on top of a bar** — a character riding the tip lends the bar length it does not have |
+  | `bar` + `horizontal` | a head on the axis side of the bar, on the highlighted row only (the top row if nothing is highlighted). The slot is reserved on every row so the bars keep one origin; the expression follows the reference line — below average is a worried face |
+  | `donut` | legend rows |
+  | `kpi` | a 22 px token beside the label; the tile stays the container |
+  | `waffle`, `unit`, `statuswall` | legend keys — the cells are already the silhouettes |
+  | `funnel`, `heatmap`, `dotmatrix`, `table` | **not supported, on purpose.** Funnel steps are ordinal and heat/matrix cells are a magnitude; shape encodes a class, never an order or a size |
 
 `lang` controls the chrome only — buttons, table headers, tooltip labels, scale notes. Leave it out
 and the language is detected from the spec's own text: any CJK anywhere → Chinese, otherwise English.
@@ -220,8 +262,66 @@ Rows: `_id` becomes `data-row`, `_cls` adds a class; a tag column reads `<key>_t
 `signColors` defaults to `gb` (green positive, red negative — good/bad). `cn` is red positive,
 green negative — price movement in East-Asian markets.
 
+## waffle — 100 marks = 100 %
+
+```json
+"data": { "items": [{ "name": "Subscription", "value": 42, "shape": "circle", "color": "…" }] },
+"options": { "total": 100, "cols": 10, "cell": 13, "gap": 4,
+             "format": "percent", "decimals": 0, "unitLabel": "of revenue", "palette": "bloom" }
+```
+
+Fills bottom-up, so the block reads as a level rising. Each group gets a colour **and** a silhouette, and
+the two are redundant — the chart still reads in greyscale and in colour blindness. Optical area is
+normalised per shape (a triangle fills about half of what a rounded square does; without the correction
+that group silently reads as half its count). ≤ 6 groups, ≤ 200 cells.
+
+## unit — a column built from counted marks
+
+```json
+"data": { "categories": ["Mon", "Tue"],
+          "series": [{ "name": "New", "values": [2, 3], "shape": "circle" }] },
+"options": { "per": 1, "unitLabel": "customers", "cell": 13, "gap": 3, "format": "number" }
+```
+
+**`per`** is how many of the measure one mark stands for — deliberately not `unit`, which is already the
+number-format suffix. Series stack, and the silhouette changes with the series, so a stack is legible
+without relying on hue. A remainder is drawn as a **part-filled** mark over a 16 % ghost, so 216 with
+`per: 40` is 5 marks and a 40 % sliver, never a rounded 200; the exact total is still printed above the
+column. ≤ 4 series, ≤ 30 marks in the tallest column.
+
+## dotmatrix — density that reads as objects
+
+```json
+"data": { "rows": ["Mon"], "cols": ["0", "1"], "values": [[150, 130]] },
+"options": { "cell": 18, "min": 0.3, "valueLabel": "Sessions", "format": "number" }
+```
+
+Cell size **and** shade both grow with the value — two channels saying one thing, so it survives greyscale
+and shrinks well. It uses **one silhouette throughout, on purpose**: sessions are a magnitude, and a second
+shape here would send the reader looking for a grouping that does not exist. `min` is the smallest cell as
+a fraction of `cell`.
+
+## statuswall — discrete states across many things
+
+```json
+"data": {
+  "states": [{ "key": "ok", "label": "Healthy", "tone": "good", "shape": "circle" },
+             { "key": "down", "label": "Down", "tone": "critical", "shape": "squircle" }],
+  "items": [{ "name": "api-gateway", "status": "ok" },
+            { "name": "pay-router", "status": "down", "note": "upstream timeout" }]
+},
+"options": { "cols": 8, "cell": 20 }
+```
+
+Every state carries its own **silhouette as well as its colour** — severity encoded by red/amber/green
+alone is the classic colour-blindness failure. `tone` is `good | warning | serious | critical` and picks
+the status colour; `shape` and `color` override. ≤ 5 states. Any `status` not declared in `states` is a
+validation error.
+
 ## Validation
 
 `python3 scripts/render.py spec.json --validate` checks the type, the required data, matching lengths,
 series count ≤ 8, scatter groups ≤ 3, funnel monotonicity, OHLC ordering, donut ≥ 2 items, table
-column keys, and the presence of a title.
+column keys, and the presence of a title. For the unit family it also enforces what keeps marks
+countable: ≤ 6 waffle groups and ≤ 200 cells, ≤ 4 unit series and ≤ 30 marks in the tallest column,
+≤ 5 wall states, no undeclared status, and matching matrix dimensions.

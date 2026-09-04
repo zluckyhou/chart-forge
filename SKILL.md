@@ -6,27 +6,34 @@ description: >-
   engine into a self-contained interactive HTML page (PNG optional). Ships a colourblind- and
   contrast-validated palette, conclusion-style titles, end-of-line labels, event annotations, average
   lines, funnel necks, heatmap marginals, in-cell table bars — across bar, ranking, line, area,
-  candlestick, donut, scatter, heatmap, funnel, KPI tiles and data tables, each with hover readouts,
-  a table view and dark mode. Use when someone says "chart this", "plot this", "visualise this data",
-  "make a graph", "trend chart", "share breakdown", "funnel", "heatmap", "KPI cards", "a chart for the
+  candlestick, donut, scatter, heatmap, funnel, KPI tiles and data tables, plus a unit family (waffle,
+  unit columns, dot matrix, status wall) where each mark is one counted thing and shape is a second
+  colourblind-safe channel. Every form shares one element layer, and marks can report live state
+  (loading, streaming, stale, refreshing, failed). Use when someone says "chart this", "plot this",
+  "visualise this data", "make a graph", "trend chart", "share breakdown", "funnel", "heatmap",
+  "KPI cards", "waffle chart", "unit chart", "pictogram", "isotype", "status wall", "a chart for the
   report", "nicer than the default charts", 画个图 / 做张图表 / 可视化这份数据 / 趋势图 / 占比图 / 漏斗 /
-  热力图 / 指标卡, or hands over a table, a CSV or a SQL result that needs a picture.
+  热力图 / 指标卡 / 华夫图 / 单位图 / 点阵图 / 状态墙, or hands over a table, a CSV or a SQL result that
+  needs a picture.
 ---
 
 # Chart Forge
 
 One chart = one `spec.json` → `scripts/render.py` → a self-contained interactive HTML file
 (zero dependencies; Google Fonts optional), plus a PNG when you need one.
-The look is editorial, not dashboard: a rounded white card with a hairline edge and no shadow on a warm
+The look is editorial, not dashboard: a rounded white card with a hairline edge and a soft lift on a warm
 plane, a conclusion title, small-caps annotations and an optional source line, a quiet toolbar, and one
 entrance motion (bars rise, lines draw, slices fade in) after which the chart is still.
+Every form — including the ones whose marks never change shape — shares one **element layer**: one radius
+family, one end token, one stroke scale, one negative-space rule, elevation on containers only, one state
+vocabulary, one palette. That is what makes a candlestick and a waffle read as the same family.
 The engine handles *drawing it correctly and making it look good*.
 **What the chart should say, and which form says it, is your job.**
 
 | Layer | Who | Owns |
 |---|---|---|
 | Expression | you (the agent) | read the data, write the one-sentence conclusion, pick the form, decide what to emphasise → `spec.json` |
-| Aesthetics | `assets/chartkit.css` + `assets/palette.json` | validated colour tokens, type, card and tooltip styling |
+| Aesthetics | `assets/chartkit.css` + `assets/palette.json` | validated colour tokens (two sets), the shape channel and its area normalisation, the geometry constants, type, card and tooltip styling |
 | Rendering | `assets/chartkit.js` + `scripts/render.py` | SVG marks, interaction, table view, axis rounding, direct labels, PNG export |
 
 ## Workflow
@@ -34,11 +41,20 @@ The engine handles *drawing it correctly and making it look good*.
 ### 1. Decide the message, then the form
 
 Read `references/choosing-a-form.md`. Write the conclusion as one sentence — that sentence *is* the
-`title`. Then pick `type` by the job:
+`title`. Then ask **what kind of quantity this is**, because it forks the whole form family:
+
+- **countable** (counts, shares, densities, discrete states) → the unit family, where one mark is one
+  thing and the reader counts objects instead of measuring an edge
+- **continuous** (prices, rates, anything with a meaningful decimal) → bar / line / area / candle /
+  heatmap. A continuous measure cannot be cut into marks, so it never joins the unit family.
+
+Then pick `type` by the job:
 
 - one number → `kpi` · change over time → `line` / `area` · compare categories → `bar`
 - ranking → `bar` + `horizontal` · part of a whole → `donut` (≤ 6 slices) · two measures → `scatter` (≤ 3 groups)
 - distribution across two dimensions → `heatmap` · price OHLC → `candle` · heterogeneous columns → `table` · step-by-step drop-off → `funnel`
+- countable share → `waffle` (100 marks = 100 %, beats a donut when shares are close) · small counts per category → `unit`
+- density that should read as objects → `dotmatrix` · discrete states across many things → `statuswall`
 
 If the data does not suit the form, reshape it first: fold a long tail into "Other" past 8 series,
 split scatter groups past 3, and put two measures of different magnitude in **two charts** — never a
@@ -55,6 +71,13 @@ printing — it becomes a small-caps line under the chart. Use `options.highligh
 one entity, `refLines` for a target, `annotations` for the event that explains a turn, and
 `reference: "average"` on a ranking. One device per chart: a highlight, an annotation *or* a reference
 line carries the story; the others, if present at all, stay quiet.
+
+**Three style opt-ins, all off by default** — turn them on deliberately, not by habit:
+`options.finish: "soft"` adds the volumetric pass (lateral sheen + contact shadow, dosed by aspect ratio,
+never along the encoding axis); `options.palette: "bloom"` swaps in the saturated alternative set;
+`options.cast: true` turns on the eight silhouettes as identity tokens — they always **replace** an
+element (the end dot, the legend key, the KPI badge), never sit beside one, and the card stays the
+container. Top-level `state` reports live condition through the marks themselves.
 
 Chart chrome (buttons, table headers, tooltip labels) follows the language of the spec's own text:
 CJK anywhere → Chinese, otherwise English. Force it with `"lang": "zh" | "en"`.

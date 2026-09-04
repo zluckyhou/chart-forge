@@ -32,7 +32,40 @@
       "绿",
       "紫",
       "红"
-    ]
+    ],
+    "bloom": {
+      "rule": "Optional alternative set — the same slot ORDER discipline, more saturation. Adjacent slots are kept far apart in hue on purpose: the reference art can put orange next to amber because it is doing identity, not encoding; a chart cannot. Select with options.palette='bloom'. Ship only after scripts/validate_palette.py passes light AND dark.",
+      "light": [
+        "#2e6fe8",
+        "#ef6b3c",
+        "#2aa98a",
+        "#8b4fec",
+        "#e99f2a",
+        "#e95995",
+        "#30a641",
+        "#915423"
+      ],
+      "dark": [
+        "#548ff2",
+        "#ec5d2d",
+        "#2fa789",
+        "#a073f2",
+        "#c87f0f",
+        "#da1768",
+        "#43aa52",
+        "#a46937"
+      ],
+      "names": [
+        "蓝",
+        "珊瑚",
+        "青",
+        "紫",
+        "琥珀",
+        "粉",
+        "绿",
+        "棕"
+      ]
+    }
   },
   "sequential": {
     "rule": "Magnitude: one hue, light to dark. The lightest step means near-zero and may recede into the surface.",
@@ -125,5 +158,48 @@
   "type": {
     "family": "IBM Plex Sans, Noto Sans SC, PingFang SC, system-ui",
     "numerals": "tabular-nums for axis ticks, table columns and any vertically aligned figures; proportional figures for large standalone numbers."
+  },
+  "shape": {
+    "rule": "The SECOND categorical channel. Shape follows the entity exactly as colour does, and the two are redundant — a chart stays readable in greyscale, in colourblind vision and on a badly calibrated projector. Shape encodes a CLASS and never a MAGNITUDE: a density or heat grid keeps ONE silhouette, because a second one sends the reader hunting for a grouping that is not there. Off below 14px (the silhouettes stop separating) and past 4 groups (they start interfering).",
+    "order": [
+      "circle",
+      "squircle",
+      "triangle",
+      "hexagon",
+      "droplet",
+      "blob",
+      "cloud",
+      "pill"
+    ],
+    "area_norm": {
+      "_why": "Fraction-of-box areas differ wildly — a triangle fills about half of what a rounded square does. In a unit chart one mark is one unit, so without normalising, the triangle group silently reads as half its count. Multiply each glyph by its factor to equalise optical area.",
+      "circle": 1.0,
+      "blob": 1.01,
+      "hexagon": 1.02,
+      "cloud": 1.09,
+      "pill": 1.11,
+      "droplet": 1.12,
+      "squircle": 0.93,
+      "triangle": 1.28
+    }
+  },
+  "geometry": {
+    "rule": "The element layer — these constants apply to EVERY form, including the ones whose marks never change shape (line, area, candle). THE AXIS RULE: volumetric cues and state motion always run PERPENDICULAR to the encoding axis. A vertical bar may shade across its width and breathe in scaleX; it must never shade or scale along its height, because the top edge is the value.",
+    "radius_block": 0.34,
+    "radius_bar": 0.38,
+    "bar_slot": 0.6,
+    "bar_max": 26,
+    "side_swell": 0.058,
+    "token": 22,
+    "token_min_face": 14,
+    "stroke": {
+      "lead": 2.4,
+      "sub": 2.0,
+      "wick": 1.4,
+      "grid": 1,
+      "ring": 2
+    },
+    "label_inside_min": 44,
+    "_dose": "Dose by aspect ratio: a 1:1 mark takes the full treatment (swell + gradient + specular + contact shadow), a 1:4 bar takes about a third of it and no specular. radius_bar at 0.5 makes a semicircle top and the bar reads as a finger — that is the ceiling, not the target."
   }
 }

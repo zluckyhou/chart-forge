@@ -1,0 +1,14 @@
+{
+  "type": "waffle",
+  "title": "订阅制已经占到营收的四成",
+  "subtitle": "营收结构 · 2026 Q2 · 一颗 = 1 个百分点 · 示例数据",
+  "data": { "items": [
+    { "name": "订阅制", "value": 42 },
+    { "name": "买断制", "value": 27 },
+    { "name": "专业服务", "value": 19 },
+    { "name": "其他", "value": 12, "color": "var(--ck-other)" }
+  ] },
+  "options": { "total": 100, "cols": 10, "format": "percent", "decimals": 0 },
+  "source": "CHART FORGE SAMPLE",
+  "width": 560
+}

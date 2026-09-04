@@ -74,7 +74,7 @@ python3 scripts/render.py chart.json -o out/chart.html --register publish --png 
 分工是关键：**agent 负责「说什么」，skill 负责「怎么画好」。** agent 写结论、选图型、决定强调谁；
 刻度取整、标签避让、命中区、悬停层、表格孪生视图、深色配色和导出都已经处理好，而且每张图都一样。
 
-## 十一种表达
+## 十五种表达
 
 十个 `type`（排名条是 `bar` 加 `horizontal: true`），每种都有可直接运行的样例在
 [`assets/examples/`](assets/examples)。
@@ -86,6 +86,36 @@ python3 scripts/render.py chart.json -o out/chart.html --register publish --png 
 | **热力图** —— 单色由浅到深，右侧与底部的边际条让「最忙的一天、最忙的时段」一眼可见；有符号数据用发散色阶。 <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/heatmap-hours-dark.png"><img alt="热力图" src="assets/gallery/heatmap-hours.png"></picture> | **散点** —— 悬停向两轴投出引线与坐标气泡；头部点自动标注，会重叠时自动跳过；中位线把画面切成四象限。 <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/scatter-roi-dark.png"><img alt="散点图" src="assets/gallery/scatter-roi.png"></picture> |
 | **环形** —— 图例每行自带占比数据条，中心读数跟随指针；占比太接近时一键切成条形比较。 <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/donut-share-dark.png"><img alt="环形图" src="assets/gallery/donut-share.png"></picture> | **数据表** —— 粘性表头与首列、可跨列共享标尺的格内条、标签、二级表头、点击排序。 <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/table-experiment-dark.png"><img alt="数据表" src="assets/gallery/table-experiment.png"></picture> |
 | **蜡烛图** —— 带股票软件式提示，纵轴按数据范围取景而不锚定零。默认红涨绿跌，`colors: "intl"` 反转。 <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/candle-price-dark.png"><img alt="蜡烛图" src="assets/gallery/candle-price.png"></picture> | **KPI 指标卡** —— 数值、知道「涨是好是坏」的涨跌胶囊，以及按这个判断着色的迷你趋势线。 <br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/kpi-tiles-dark.png"><img alt="KPI 指标卡" src="assets/gallery/kpi-tiles.png"></picture> |
+
+### 单位家族 —— 当读者应该「数」而不是「量」
+
+条形图让人去量一条边。当这个量本身可数时，一个元件对应一件事既更好读、也更诚实：占比接近的构成、小
+数量的计数、离散状态。这里每个元件都是 1:1，所以**形状可以当第二编码通道**——颜色和轮廓说同一件事，
+转灰度、色盲、投影仪偏色都还读得出。
+
+| | |
+|---|---|
+| **华夫图** —— 100 颗 = 100%，自下而上填，读作水位上涨。按轮廓做了光学面积归一：三角只占圆角方块约一半面积，不归一那组就会被平白读成一半。<br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/waffle-revenue-mix-dark.png"><img alt="华夫图" src="assets/gallery/waffle-revenue-mix.png"></picture> | **单位柱** —— 一颗一件事，按系列堆叠、每个系列一种轮廓。余数在淡影上部分填充，所以「一颗 = 40」时的 216 是五颗加一小截，而不是四舍五入成 200。<br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/unit-signups-dark.png"><img alt="单位柱图" src="assets/gallery/unit-signups.png"></picture> |
+| **点阵密度** —— 尺寸和明度同时随数值增长，缩小和转灰度都还读得出。全程只用一种轮廓，这是刻意的：密度是「量」不是「类」，换形状会让人去找一个不存在的分组。<br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/dotmatrix-hours-dark.png"><img alt="点阵密度图" src="assets/gallery/dotmatrix-hours.png"></picture> | **状态墙** —— 每种状态都带自己的轮廓，不只是颜色。严重程度只用红黄绿是最经典的色盲陷阱。<br><br><picture><source media="(prefers-color-scheme: dark)" srcset="assets/gallery/statuswall-services-dark.png"><img alt="状态墙" src="assets/gallery/statuswall-services.png"></picture> |
+
+`--validate` 会守住「数得过来」这条线：华夫 ≤ 200 格、最高一列 ≤ 30 颗、单位柱 ≤ 4 个系列、
+状态 ≤ 5 种。再多就没人数了，只会估——而估这件事条形图做得更好。连续量（价格、比率、任何小数有
+意义的数）永远不进这个家族。
+
+### 一套元件层，所有图形共用
+
+K 线图和华夫图看起来像同一个产品，靠的不是形状相同，而是共用常量：一套圆角族（块 `0.34 × 短边`、
+柱 `0.38 × 柱宽`——取到 `0.5` 就是半圆顶，柱子会读成手指）、一个端点元件、一套笔画重量、surface 色
+的负空间标签、只给容器的抬升、一套调色板、一套状态词汇。
+
+上面叠三个开关，默认全关。`finish: "soft"` 加体积感，**方向垂直于编码轴**——竖柱只沿宽度渐变、绝不
+沿高度，接触阴影完全落在共同基线以下，所以没有任何读数被移动。`palette: "bloom"` 换饱和度更高的备选
+盘，和默认盘过同一套校验。`cast: true` 打开八个轮廓作为身份令牌，它们始终**替掉**原有元件（末点圆点、
+图例键、KPI 徽标），而不是并排新增。
+
+`state: "load | stream | stale | refresh | error"` 让 mark 自己报告实时状态，不用盖骨架屏：`stream`
+只脉冲最新那一个并暂不出数字，`stale` 降饱和并放慢到 6.5 秒一次呼吸。所有关键帧只动 `scaleX`、透明度
+和饱和度，且每种状态都同时给一个词——所以在 `prefers-reduced-motion` 和 PNG 里依然成立。
 
 ## 为什么比默认图表更好读
 
