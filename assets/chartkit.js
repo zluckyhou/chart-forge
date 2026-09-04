@@ -303,6 +303,13 @@
     defs.__ck_contact = id; return id;
   }
   function finishOf(spec) { var o = spec.options || {}; return o.finish === 'soft' ? 'soft' : 'flat'; }
+  /* options.cast — true, or a { seriesName: shapeName } map to pin silhouettes.
+   * Two roles, kept apart on purpose:
+   *   silhouette = IDENTITY. Unlimited within the shape cap, and the only role a legend key gets.
+   *   expression = STORY. One per chart, on the subject of the sentence — same budget as a
+   *                highlight or an annotation (see "One device per chart" in rules.md). */
+  function castCfg(spec) { var c = (spec.options || {}).cast; return c ? { map: typeof c === 'object' ? c : {} } : null; }
+  function castPick(cfg, name, i) { return (cfg && cfg.map[name]) || castShape(i); }
 
   function chip(g, x, y, text, anchor) {
     var w = textW(text, 10.5) + 12, h = 17, left = anchor === 'end' ? x - w : anchor === 'middle' ? x - w / 2 : x;
@@ -337,7 +344,7 @@
     if (state === 'refresh') body.appendChild(el('div', { class: 'ck-sweepband' }));
     if (spec.note) c.appendChild(el('p', { class: 'ck-note', text: spec.note }));
     if (spec.source) c.appendChild(el('p', { class: 'ck-source', text: spec.source }));
-    return { root: c, controls: controls, legend: legend, body: body, tip: tip };
+    return { root: c, controls: controls, legend: legend, body: body, tip: tip, cast: castCfg(spec) };
   }
   function segmented(options, value, onChange) {
     var seg = el('div', { class: 'ck-seg', role: 'group' });
@@ -359,7 +366,11 @@
     if (series.length < 2 || hide) { ui.legend.style.display = 'none'; return; }
     ui.legend.style.display = '';
     series.forEach(function (s, i) {
-      ui.legend.appendChild(el('button', { type: 'button', 'aria-pressed': String(!hidden[i]), onclick: function () { onToggle(i); } }, [el('i', { class: 'ck-key ' + shape, style: { background: s.color } }), s.name]));
+      // the key IS the cast member — it replaces the swatch, it never sits next to one.
+      // No face at legend size: 14px is below the threshold where eyes still read.
+      var key = ui.cast ? castEl(castPick(ui.cast, s.name, i), s.color, false, 14)
+                        : el('i', { class: 'ck-key ' + shape, style: { background: s.color } });
+      ui.legend.appendChild(el('button', { type: 'button', 'aria-pressed': String(!hidden[i]), onclick: function () { onToggle(i); } }, [key, s.name]));
     });
   }
   function showTip(ui, title, rows, x, y, plotW) {
@@ -500,7 +511,7 @@
     ui.controls.appendChild(toggleButton(L.table, false, function (v) { st.table = v; draw(); }));
     var total = sum(items.map(function (x) { return x.value; })), max = maxOf(items.map(function (x) { return x.value; }));
     var ref = o.reference === 'average' ? { value: total / items.length, label: L.average } : (o.reference && typeof o.reference === 'object' ? o.reference : null);
-    var labelW = o.labelWidth || 72, valueW = 120;
+    var labelW = o.labelWidth || 72, valueW = 120, anyHl = hl.length > 0;
     function draw() {
       clear(ui.body); ui.body.appendChild(ui.tip); ui.legend.style.display = 'none';
       var list = st.sorted ? items.slice().sort(function (a, b) { return b.value - a.value; }) : items;
@@ -508,6 +519,7 @@
       var wrap = el('div', { class: 'ck-rows' });
       if (ref) {
         var head = el('div', { class: 'ck-ref-head' }, [o.rankNumbers ? el('span', { class: 'ck-rank' }) : null, el('span', { style: { width: labelW + 'px', flex: 'none' } }),
+          ui.cast ? el('span', { class: 'ck-head' }) : null,
           el('div', { style: { flex: 1, position: 'relative', height: '14px' } }, el('span', { class: 'lab ck-num', style: { left: (ref.value / max * 100).toFixed(1) + '%' }, text: (ref.label || L.baseline) + ' ' + fmt(ref.value, f) })), el('span', { style: { width: valueW + 'px', flex: 'none' } })]);
         wrap.appendChild(head);
       }
@@ -515,6 +527,15 @@
         var row = el('div', { class: 'ck-row' + (it.hl ? ' hl' : '') });
         if (o.rankNumbers) row.appendChild(el('span', { class: 'ck-rank ck-num', text: (i + 1 < 10 ? '0' : '') + (i + 1) }));
         row.appendChild(el('span', { class: 'lbl', style: { width: labelW + 'px', color: it.hl ? 'var(--ck-ink)' : '', fontWeight: it.hl ? 600 : 400 }, text: it.name }));
+        // The head sits entirely on the axis side of the origin, and the slot is reserved on EVERY
+        // row whether or not it is drawn — otherwise the bars would start at different x and the
+        // lengths would stop being comparable. Only the subject gets one: a ranking already has a
+        // text label per row, so a face on all ten would be ten faces and no story.
+        if (ui.cast) {
+          var mark = anyHl ? it.hl : i === 0;
+          var below = ref && it.value < ref.value;
+          row.appendChild(el('span', { class: 'ck-head' }, mark ? castEl(castPick(ui.cast, it.name, i), it.color, below ? 'down' : 'up', 20) : null));
+        }
         var trk = el('div', { class: 'trk' }, el('div', { class: 'fill ck-mark ck-grow', style: { width: (it.value / max * 100).toFixed(1) + '%', background: it.color, animationDelay: (i * 70) + 'ms' } }));
         if (ref) trk.appendChild(el('div', { class: 'ref', style: { left: (ref.value / max * 100).toFixed(1) + '%' } }));
         row.appendChild(trk);
@@ -539,8 +560,8 @@
     if (o.toggle !== false) ui.controls.appendChild(segmented([{ label: L.lineMode, value: false }, { label: L.areaMode, value: true }], st.area, function (v) { st.area = v; draw(); }));
     ui.controls.appendChild(toggleButton(L.table, false, function (v) { st.table = v; draw(); }));
     var endLabels = o.endLabels !== false, markMax = o.markMax !== undefined ? o.markMax : series.length === 1;
-    var castOn = !!o.cast, castMap = (o.cast && typeof o.cast === 'object') ? o.cast : {};
-    function castFor(name, i) { return castMap[name] || castShape(i); }
+    var castOn = !!o.cast;
+    function castFor(name, i) { return castPick(ui.cast, name, i); }
     function castMood(s) { return s.dimmed ? 'flat' : 'up'; }
     var endW = endLabels ? 14 + maxOf(series.map(function (s) { return textW(s.name, 11.5); }).concat(series.map(function (s) { return textW(fmt(s.values[n - 1], f), 11); }))) : 0;
     var padL = 52, padR = Math.max(12, endW), plotH = o.height || 240, plotW = width - 52 - padL - padR, labelH = 26, topPad = (o.annotations && o.annotations.length) ? 22 : (markMax ? 18 : 6);
@@ -732,7 +753,8 @@
         if (st.view === 'donut') {
           row = el('div', { class: 'ck-row', style: { height: '44px', position: 'relative', alignItems: 'flex-start', paddingTop: '9px' } }, [
             el('div', { class: 'dtrk' }, el('div', { class: 'dbar ck-grow', style: { width: (it.value / max * 100).toFixed(1) + '%', background: it.color, animationDelay: (300 + i * 80) + 'ms' } })),
-            el('i', { class: 'ck-key rect', style: { background: it.color, marginTop: '4px' } }), el('span', { class: 'lbl', style: { flex: 1 }, text: it.name }),
+            ui.cast ? castEl(castPick(ui.cast, it.name, i), it.color, false, 14, { norm: true }) : el('i', { class: 'ck-key rect', style: { background: it.color, marginTop: '4px' } }),
+            el('span', { class: 'lbl', style: { flex: 1 }, text: it.name }),
             el('span', { class: 'sub ck-num', style: { width: '80px', textAlign: 'right' }, text: fmt(it.value, f) }), el('span', { class: 'val ck-num', style: { width: '56px', textAlign: 'right' }, text: (it.value / total * 100).toFixed(1) + '%' })]);
         } else {
           row = el('div', { class: 'ck-row', style: { flexDirection: 'column', alignItems: 'stretch', gap: '7px', padding: '9px 12px' } }, [

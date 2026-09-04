@@ -58,8 +58,10 @@ rendered image.
 
 ## One device per chart
 
-- The story is carried by **one** of: a highlighted entity, an event annotation, a reference line. The
-  engine can draw all three at once; a chart that needs all three has two stories and wants two charts.
+- The story is carried by **one** of: a highlighted entity, an event annotation, a reference line, or one
+  cast **expression**. The engine can draw all of them at once; a chart that needs all of them has two
+  stories and wants two charts. A cast *silhouette* is identity, not a device, and is not rationed the
+  same way — but expressions are: ten faces in a ranking is ten faces and no story.
 - The palette is the palette. Hierarchy comes from `highlight` (the rest go to the warm grey `dim`), never
   from tints, ramps across a ranking, gradients under several lines, or a coloured word in the title.
   `finish: "soft"` is not hierarchy — it is a lateral sheen of ±7 % on every mark equally, and it is off
@@ -119,4 +121,8 @@ rendered image.
   character, a legend swatch **and** a character. That is a sticker, not an identity.
 - A cast member used as a **container**: the number bursts out of the silhouette and the label and delta
   end up orphaned outside it. The card is the container; the character is a 22 px token inside it.
+- A cast member riding the tip of a bar or the end of a ranking row — it lends the mark length it does not
+  have. Heads go on the axis side of the shared origin, in a slot reserved on every row.
+- A cast member on a funnel step, a heat cell or a matrix cell: those encode order or magnitude, and shape
+  encodes neither.
 - Shape used for a magnitude, or unit marks so numerous nobody counts them.

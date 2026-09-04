@@ -44,9 +44,28 @@ Three options are shared by every type, all off by default:
 - **`options.cast: true`** turns on the cast — eight silhouettes bound to the eight colour slots. It always
   **replaces** an element, never joins one: the end dot of a line *becomes* the character, the legend key
   *becomes* the character, the KPI badge *becomes* the character. Its geometric centre sits on the datum,
-  so position is still the value. Pass an object to pin shapes by series name:
+  so position is still the value. Pass an object to pin shapes by series or item name:
   `"cast": {"Subscriptions": "circle", "One-off": "droplet"}`. The card is always the container — never
   let the character be the tile.
+
+  The cast splits into two roles, and they have different budgets:
+
+  | Role | What it is | Budget |
+  |---|---|---|
+  | **Silhouette** | identity — which series/item/state this is | one per entity, up to the shape cap (4 in a grid, 8 overall) |
+  | **Expression** | the story — good / bad / flat / waiting / asleep | **one per chart**, on the subject, same budget as a highlight or an annotation |
+
+  Where it lands, by type:
+
+  | Type | Cast appears as |
+  |---|---|
+  | `line` / `area` | the end token — it *is* the last-point dot, ringed in the surface colour |
+  | `bar`, `candle`, `scatter` | legend keys (`scatter` also swaps the dots for silhouettes). **Never on top of a bar** — a character riding the tip lends the bar length it does not have |
+  | `bar` + `horizontal` | a head on the axis side of the bar, on the highlighted row only (the top row if nothing is highlighted). The slot is reserved on every row so the bars keep one origin; the expression follows the reference line — below average is a worried face |
+  | `donut` | legend rows |
+  | `kpi` | a 22 px token beside the label; the tile stays the container |
+  | `waffle`, `unit`, `statuswall` | legend keys — the cells are already the silhouettes |
+  | `funnel`, `heatmap`, `dotmatrix`, `table` | **not supported, on purpose.** Funnel steps are ordinal and heat/matrix cells are a magnitude; shape encodes a class, never an order or a size |
 
 `lang` controls the chrome only — buttons, table headers, tooltip labels, scale notes. Leave it out
 and the language is detected from the spec's own text: any CJK anywhere → Chinese, otherwise English.
