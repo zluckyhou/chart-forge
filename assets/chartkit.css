@@ -302,9 +302,10 @@
 .ck-cast { display: block; flex: none; overflow: visible; }
 .ck-legend .ck-cast { width: 14px; height: 14px; }   /* <= 14px: silhouette only, eyes stop reading */
 /* Ranking: the head slot is reserved on every row so the bars keep one origin — only the
- * subject of the sentence actually gets a character in it. */
-.ck-head { width: 26px; flex: none; display: flex; align-items: center; justify-content: center; }
-.ck-head .ck-cast { width: 20px; height: 20px; }
+ * subject of the sentence actually gets a character in it.
+ * NOT `.ck-head` — that is already the card header, and reusing it collapses every header. */
+.ck-rowhead { width: 26px; flex: none; display: flex; align-items: center; justify-content: center; }
+.ck-rowhead .ck-cast { width: 20px; height: 20px; }
 
 /* ---------- unit / waffle / status wall: the mark IS the unit ---------- */
 .ck-units { display: block; overflow: visible; }

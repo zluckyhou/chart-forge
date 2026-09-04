@@ -519,7 +519,7 @@
       var wrap = el('div', { class: 'ck-rows' });
       if (ref) {
         var head = el('div', { class: 'ck-ref-head' }, [o.rankNumbers ? el('span', { class: 'ck-rank' }) : null, el('span', { style: { width: labelW + 'px', flex: 'none' } }),
-          ui.cast ? el('span', { class: 'ck-head' }) : null,
+          ui.cast ? el('span', { class: 'ck-rowhead' }) : null,
           el('div', { style: { flex: 1, position: 'relative', height: '14px' } }, el('span', { class: 'lab ck-num', style: { left: (ref.value / max * 100).toFixed(1) + '%' }, text: (ref.label || L.baseline) + ' ' + fmt(ref.value, f) })), el('span', { style: { width: valueW + 'px', flex: 'none' } })]);
         wrap.appendChild(head);
       }
@@ -534,7 +534,7 @@
         if (ui.cast) {
           var mark = anyHl ? it.hl : i === 0;
           var below = ref && it.value < ref.value;
-          row.appendChild(el('span', { class: 'ck-head' }, mark ? castEl(castPick(ui.cast, it.name, i), it.color, below ? 'down' : 'up', 20) : null));
+          row.appendChild(el('span', { class: 'ck-rowhead' }, mark ? castEl(castPick(ui.cast, it.name, i), it.color, below ? 'down' : 'up', 20) : null));
         }
         var trk = el('div', { class: 'trk' }, el('div', { class: 'fill ck-mark ck-grow', style: { width: (it.value / max * 100).toFixed(1) + '%', background: it.color, animationDelay: (i * 70) + 'ms' } }));
         if (ref) trk.appendChild(el('div', { class: 'ref', style: { left: (ref.value / max * 100).toFixed(1) + '%' } }));
