@@ -17,6 +17,11 @@
   'use strict';
   var SVG = 'http://www.w3.org/2000/svg';
   var SERIES = ['var(--ck-s1)', 'var(--ck-s2)', 'var(--ck-s3)', 'var(--ck-s4)', 'var(--ck-s5)', 'var(--ck-s6)', 'var(--ck-s7)', 'var(--ck-s8)'];
+  // Alternative categorical set. Same slot-order discipline, more saturation. Gated by the same
+  // validator as the default set (scripts/validate_palette.py --set bloom) — an unvalidated palette does not ship.
+  var BLOOM = ['var(--ck-b1)', 'var(--ck-b2)', 'var(--ck-b3)', 'var(--ck-b4)', 'var(--ck-b5)', 'var(--ck-b6)', 'var(--ck-b7)', 'var(--ck-b8)'];
+  var PALETTES = { default: SERIES, bloom: BLOOM };
+  var PAL = SERIES;
   var RAMP = ['var(--ck-q0)', 'var(--ck-q1)', 'var(--ck-q2)', 'var(--ck-q3)', 'var(--ck-q4)', 'var(--ck-q5)', 'var(--ck-q6)', 'var(--ck-q7)'];
   var ORDINAL = ['var(--ck-o1)', 'var(--ck-o2)', 'var(--ck-o3)', 'var(--ck-o4)', 'var(--ck-o5)', 'var(--ck-o6)'];
   var ORDINAL_INK = ['#16161a', '#16161a', '#ffffff', '#ffffff', '#ffffff', '#ffffff'];
@@ -47,6 +52,8 @@
       darkerHigher: ' · darker means higher', darkerAbs: ', darker means larger',
       margSum: ' · grey bars are row and column totals', margAvg: ' · grey bars are row and column averages',
       divergeCn: ' · red positive, green negative', divergeIntl: ' · green positive, red negative',
+      stLoad: 'Loading', stStream: 'Streaming', stStale: 'Out of date', stRefresh: 'Refreshing', stError: 'Fetch failed',
+      unitIs: 'one mark = ', ofTotal: ' of ', status: 'Status', shapeNote: ' · shape and colour both say the group',
       unknownType: 'Unknown chart type: ' },
     zh: { table: '表格', grouped: '分组', stacked: '堆叠', lineMode: '折线', areaMode: '面积', donutMode: '环形', barsMode: '条形',
       category: '类别', value: '数值', total: '合计', share: '占比', name: '名称', group: '分组', items: '项', unit: '单位',
@@ -58,6 +65,8 @@
       darkerHigher: ' · 颜色越深数值越高', darkerAbs: '，越深绝对值越大',
       margSum: ' · 右侧 / 底部灰条为行列合计', margAvg: ' · 右侧 / 底部灰条为行列均值',
       divergeCn: ' · 红=正值 绿=负值', divergeIntl: ' · 绿=正值 红=负值',
+      stLoad: '载入中', stStream: '流式到达', stStale: '已过期', stRefresh: '刷新中', stError: '取数失败',
+      unitIs: '一颗 = ', ofTotal: ' / ', status: '状态', shapeNote: ' · 形状与颜色同时表示分组',
       unknownType: '未知图表类型：' }
   };
   var L = STR.en;
@@ -177,9 +186,124 @@
   }
   function linePath(pts, smooth) { return smooth ? smoothPath(pts) : 'M' + pts.map(function (p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' L'); }
   function roundedTop(x, y, w, h, r) {
-    r = Math.min(r, w / 2, h); if (h <= 0) return '';
+    r = Math.min(r === undefined ? 0.38 * w : r, w / 2, h); if (h <= 0) return '';
     return 'M' + x + ',' + (y + h) + ' V' + (y + r) + ' Q' + x + ',' + y + ' ' + (x + r) + ',' + y + ' H' + (x + w - r) + ' Q' + (x + w) + ',' + y + ' ' + (x + w) + ',' + (y + r) + ' V' + (y + h) + ' Z';
   }
+
+  /* ---------- PLUMP MARKS: the element layer ----------
+   * Shared by EVERY form, including the ones that never change shape (line, area, candle):
+   * one radius family, one end token, one stroke scale, one negative-space rule,
+   * container-only elevation, one state vocabulary.
+   * THE AXIS RULE — volumetric cues (gradient, contact shadow, state motion) always run
+   * PERPENDICULAR to the encoding axis. A vertical bar may shade across its WIDTH and
+   * breathe in scaleX; it must never shade or scale along its HEIGHT, because the top edge
+   * is the value. Dose is set by aspect ratio: a 1:1 mark takes the full treatment, a 1:4
+   * bar takes a third of it. See references/rules.md. */
+  var GEO = {
+    rBlock: 0.34,          // corner radius / short side, for any filled block
+    rBar: 0.38,            // corner radius / bar width. 0.5 makes a semicircle -> reads as a finger
+    swell: 0.058,          // side bow / bar width. Width encodes nothing, so a slight bulge is free
+    barMax: 26, barSlot: 0.60,
+    token: 22, tokenMin: 14, // below tokenMin the eyes stop reading: silhouette only
+    stroke: { lead: 2.4, sub: 2.0, wick: 1.4, ring: 2 },
+    labelInside: 44        // a mark shorter than this cannot hold a label in surface colour
+  };
+  /* 8 silhouettes. `a` is the fraction of the 72-box the glyph fills; `k` normalises every
+   * shape to the same optical area (a triangle fills half a square — without this the
+   * triangle group in a waffle silently reads as half its count). */
+  var CAST = {
+    circle:   { d: '<circle cx="36" cy="36" r="28"/>', cy: 35, k: 1.00 },
+    blob:     { d: '<path d="M37 7C54 6 65.5 19 64.5 35.5 63.5 52.5 52 65.5 34.8 65.5 18.4 65.5 6.8 53.4 7.8 36.2 8.8 20 21 8 37 7Z"/>', cy: 35, k: 1.01 },
+    squircle: { d: '<rect x="8" y="8" width="56" height="56" rx="20"/>', cy: 35, k: 0.93 },
+    hexagon:  { d: '<path d="M30.4 9.1C34 7 38 7 41.6 9.1L57.6 18.3C61.2 20.4 63 23.5 63 27.6V45.9C63 50 61.2 53.1 57.6 55.2L41.6 64.4C38 66.5 34 66.5 30.4 64.4L14.4 55.2C10.8 53.1 9 50 9 45.9V27.6C9 23.5 10.8 20.4 14.4 18.3Z"/>', cy: 36, k: 1.02 },
+    pill:     { d: '<rect x="4" y="14" width="64" height="44" rx="22"/>', cy: 36, k: 1.11 },
+    triangle: { d: '<path d="M36 8.5C39.2 8.5 41.6 10.1 43.1 12.8L62.4 47.2C65.4 52.6 62.4 58.5 56 58.5H16C9.6 58.5 6.6 52.6 9.6 47.2L28.9 12.8C30.4 10.1 32.8 8.5 36 8.5Z"/>', cy: 40, k: 1.28 },
+    cloud:    { d: '<circle cx="24" cy="40" r="17"/><circle cx="48" cy="40" r="17"/><circle cx="30" cy="26" r="15"/><circle cx="44" cy="27" r="14"/><rect x="18" y="34" width="36" height="23" rx="11"/>', cy: 37, k: 1.09 },
+    droplet:  { d: '<path d="M36 6C36 6 62 31.5 62 45.2 62 57 50.4 66 36 66 21.6 66 10 57 10 45.2 10 31.5 36 6 36 6Z"/>', cy: 43, k: 1.12 }
+  };
+  // Order matters: the first three are the most distinguishable at small sizes, which is what
+  // scatter (capped at 3 groups) and a waffle actually get. `pill` is last — it is much wider than
+  // it is tall, so in a unit grid its row reads as ragged next to the compact silhouettes.
+  var CAST_ORDER = ['circle', 'squircle', 'triangle', 'hexagon', 'droplet', 'blob', 'cloud', 'pill'];
+  function castShape(i) { return CAST_ORDER[i % CAST_ORDER.length]; }
+  /* Expressions use one vocabulary — a pair of capsules, dots or lines — never mouths.
+   * `up`/`down` encode GOOD / BAD, not direction: an arrow says which way it moved. */
+  function castFace(expr, cy) {
+    var L = 28.7, R = 43.3;
+    function cap(cx, rot) { return '<rect x="' + (cx - 3.2) + '" y="' + (cy - 9) + '" width="6.4" height="18" rx="3.2" transform="rotate(' + rot + ' ' + cx + ' ' + cy + ')"/>'; }
+    function bar(cx, h) { return '<rect x="' + (cx - 4.7) + '" y="' + (cy - h / 2) + '" width="9.4" height="' + h + '" rx="' + (h / 2) + '"/>'; }
+    if (expr === 'down') return cap(L, 17) + cap(R, -17);
+    if (expr === 'flat') return bar(L, 6) + bar(R, 6);
+    if (expr === 'sleep') return bar(L, 3.2) + bar(R, 3.2);
+    if (expr === 'wait') return '<circle cx="' + L + '" cy="' + cy + '" r="4"/><circle cx="' + R + '" cy="' + cy + '" r="4"/>';
+    return cap(L, -17) + cap(R, 17);
+  }
+  /* One object, three rungs: <=14px silhouette only, 22px with a face, 40px+ with a specular.
+   * `norm` equalises optical area — on for counted units, off for identity tokens. */
+  function castMarkup(shape, color, expr, size, opt) {
+    opt = opt || {};
+    var c = CAST[shape] || CAST.circle, k = opt.norm ? c.k : 1;
+    var body = '<g fill="' + color + '"' + (k !== 1 ? ' transform="translate(36 36) scale(' + k + ') translate(-36 -36)"' : '') + '>' + c.d + '</g>';
+    var ring = opt.ring ? '<g fill="var(--ck-surface)" transform="translate(36 36) scale(1.15) translate(-36 -36)">' + c.d + '</g>' : '';
+    var eyes = (size >= GEO.tokenMin && expr !== false) ? '<g fill="var(--ck-surface)">' + castFace(expr || 'up', c.cy) + '</g>' : '';
+    var spec = (size >= 40 && opt.spec !== false) ? '<ellipse cx="24" cy="' + (c.cy - 12) + '" rx="6" ry="4.4" transform="rotate(-24 24 ' + (c.cy - 12) + ')" fill="var(--ck-spec)"/>' : '';
+    return ring + body + spec + eyes;
+  }
+  function castEl(shape, color, expr, size, opt) {
+    var n = document.createElementNS(SVG, 'svg');
+    n.setAttribute('viewBox', '0 0 72 72'); n.setAttribute('class', 'ck-cast'); n.setAttribute('aria-hidden', 'true');
+    n.setAttribute('width', size); n.setAttribute('height', size);
+    n.innerHTML = castMarkup(shape, color, expr, size, opt);
+    return n;
+  }
+  /* A cast token placed INSIDE a plot: geometric centre sits exactly on the datum, so it
+   * replaces the dot rather than sitting beside it. Position is the value. */
+  function castAt(shape, color, expr, cx, cy, size, opt) {
+    var n = sv('svg', { x: cx - size / 2, y: cy - size / 2, width: size, height: size, viewBox: '0 0 72 72', overflow: 'visible' });
+    n.innerHTML = castMarkup(shape, color, expr, size, opt);
+    return n;
+  }
+  /* A plump bar: rounded free end, SQUARE baseline end (the length datum stays a flat edge),
+   * and sides bowed outward — width encodes nothing, so the bulge costs no accuracy. */
+  function plumpTop(x, y, w, h, r, sw) {
+    r = Math.min(r === undefined ? GEO.rBar * w : r, w / 2, h); if (h <= 0) return '';
+    sw = sw || 0; var b = y + h, m = (b + y + r) / 2;
+    return 'M' + x + ',' + b + (sw ? ' Q' + (x - sw) + ',' + m + ' ' + x + ',' + (y + r) : ' V' + (y + r)) +
+      ' Q' + x + ',' + y + ' ' + (x + r) + ',' + y + ' H' + (x + w - r) + ' Q' + (x + w) + ',' + y + ' ' + (x + w) + ',' + (y + r) +
+      (sw ? ' Q' + (x + w + sw) + ',' + m + ' ' + (x + w) + ',' + b : ' V' + b) + ' Z';
+  }
+  function plumpBot(x, y, w, h, r, sw) {
+    r = Math.min(r === undefined ? GEO.rBar * w : r, w / 2, h); if (h <= 0) return '';
+    sw = sw || 0; var b = y + h, m = (y + b - r) / 2;
+    return 'M' + x + ',' + y + (sw ? ' Q' + (x - sw) + ',' + m + ' ' + x + ',' + (b - r) : ' V' + (b - r)) +
+      ' Q' + x + ',' + b + ' ' + (x + r) + ',' + b + ' H' + (x + w - r) + ' Q' + (x + w) + ',' + b + ' ' + (x + w) + ',' + (b - r) +
+      (sw ? ' Q' + (x + w + sw) + ',' + m + ' ' + (x + w) + ',' + y : ' V' + y) + ' Z';
+  }
+  /* finish:"soft" — a LATERAL sheen. For a vertical bar the encoding axis is height, so a
+   * left-to-right ramp changes no reading at any height. Dose shrinks as the mark gets thinner. */
+  function softFill(defs, color, thin) {
+    if (!defs) return color;
+    var id = 'ckv' + (++uid), a = thin ? 6 : 12, b = thin ? 5 : 10;
+    defs.appendChild(sv('linearGradient', { id: id, x1: 0, y1: 0, x2: 1, y2: 0 }, [
+      sv('stop', { offset: '0%', 'stop-color': color }),
+      sv('stop', { offset: '32%', 'stop-color': 'color-mix(in srgb, ' + color + ' ' + (100 - a) + '%, #fff)' }),
+      sv('stop', { offset: '70%', 'stop-color': color }),
+      sv('stop', { offset: '100%', 'stop-color': 'color-mix(in srgb, ' + color + ' ' + (100 - b) + '%, #000)' })]));
+    return 'url(#' + id + ')';
+  }
+  /* Contact shadow: lives entirely BELOW the shared baseline and is identical under every
+   * mark, so it seats the bars on a plane without lending any of them extra length. */
+  function contactId(defs) {
+    if (!defs) return null;
+    if (defs.__ck_contact) return defs.__ck_contact;
+    var id = 'ckc' + (++uid);
+    defs.appendChild(sv('radialGradient', { id: id }, [
+      sv('stop', { offset: '0%', 'stop-color': 'var(--ck-contact)' }),
+      sv('stop', { offset: '100%', 'stop-color': 'var(--ck-contact)', 'stop-opacity': '0' })]));
+    defs.__ck_contact = id; return id;
+  }
+  function finishOf(spec) { var o = spec.options || {}; return o.finish === 'soft' ? 'soft' : 'flat'; }
+
   function chip(g, x, y, text, anchor) {
     var w = textW(text, 10.5) + 12, h = 17, left = anchor === 'end' ? x - w : anchor === 'middle' ? x - w / 2 : x;
     g.appendChild(sv('rect', { class: 'ck-chip', x: left, y: y - h / 2, width: w, height: h, rx: 8.5 }));
@@ -190,6 +314,11 @@
   function card(spec, width) {
     var reg = spec.register === 'publish' || spec.register === 'analyse' ? spec.register : DEFAULTS.register;
     var c = el('figure', { class: 'ck-card' + (motionOn(spec) ? ' ck-motion' : ''), 'data-register': reg, style: { width: width + 'px' } });
+    // Motion as a STATE channel, not decoration: with no `state` the chart is still, as before.
+    // Every state keyframe moves scaleX / opacity / saturate only — never the encoding axis.
+    var STATES = { load: 'stLoad', stream: 'stStream', stale: 'stStale', refresh: 'stRefresh', error: 'stError' };
+    var state = STATES[spec.state] ? spec.state : null;
+    if (state) c.setAttribute('data-state', state);
     if (c.classList.contains('ck-motion')) setTimeout(function () { c.classList.remove('ck-motion'); }, 1800);
     var head = el('div', { class: 'ck-head' }), titles = el('div');
     // Two lines, never three: the conclusion, then one line of context.
@@ -198,10 +327,14 @@
     if (spec.title) titles.appendChild(el('h3', { class: 'ck-title', text: spec.title }));
     if (sub) titles.appendChild(el('p', { class: 'ck-sub', text: sub }));
     head.appendChild(titles);
-    var controls = el('div', { class: 'ck-controls' }); head.appendChild(controls); c.appendChild(head);
+    var controls = el('div', { class: 'ck-controls' });
+    // the state never relies on motion alone: it always ships a word, for reduced-motion and PNG
+    if (state) controls.appendChild(el('span', { class: 'ck-state' }, [el('i'), L[STATES[state]]]));
+    head.appendChild(controls); c.appendChild(head);
     var legend = el('div', { class: 'ck-legend' }); c.appendChild(legend);
     var body = el('div', { class: 'ck-body' }); c.appendChild(body);
     var tip = el('div', { class: 'ck-tip' }); body.appendChild(tip);
+    if (state === 'refresh') body.appendChild(el('div', { class: 'ck-sweepband' }));
     if (spec.note) c.appendChild(el('p', { class: 'ck-note', text: spec.note }));
     if (spec.source) c.appendChild(el('p', { class: 'ck-source', text: spec.source }));
     return { root: c, controls: controls, legend: legend, body: body, tip: tip };
@@ -255,7 +388,7 @@
     var hl = spec.options && spec.options.highlight;
     return (spec.data.series || []).map(function (s, i) {
       var dimmed = hl && hl.length && hl.indexOf(s.name) === -1;
-      return { name: s.name, values: s.values, color: dimmed ? DIM : (s.color || SERIES[i % 8]), dimmed: !!dimmed };
+      return { name: s.name, values: s.values, shape: s.shape, color: dimmed ? DIM : (s.color || PAL[i % 8]), dimmed: !!dimmed };
     });
   }
   function hitEvents(node, enter, leave) {
@@ -310,11 +443,14 @@
       var yOf = function (v) { return plotH - (v - (axis.min || 0)) / span * plotH; };
       var yZero = axis.min < 0 ? yOf(0) : plotH;
       var svg = sv('svg', { class: 'ck-plot', width: width - 52, height: plotH + labelH });
+      var defs = sv('defs'); svg.appendChild(defs);
       var g = sv('g', { transform: 'translate(' + padL + ',0)' }); svg.appendChild(g);
       var bands = sv('g'); g.appendChild(bands);
       axisY(g, plotW, plotH, axis, f);
       var slot = plotW / n, k = vis.length;
-      var barW = st.stacked ? Math.min(30, slot * 0.56) : Math.min(28, (slot * 0.72 - 3 * (k - 1)) / k);
+      // slot occupancy 0.60 leaves real air between bars; 0.79 makes them read as slots, not objects
+      var barW = st.stacked ? Math.min(GEO.barMax, slot * GEO.barSlot) : Math.min(GEO.barMax, (slot * GEO.barSlot - 3 * (k - 1)) / k);
+      var soft = finishOf(spec) === 'soft', sw = soft ? GEO.swell * barW : 0, cid = soft ? contactId(defs) : null;
       var groupW = st.stacked ? barW : barW * k + 3 * (k - 1);
       var bandEls = [];
       cats.forEach(function (c, ci) {
@@ -327,10 +463,12 @@
           else { x = x0 + si * (barW + 3); y = neg ? yZero : yOf(v); h = Math.abs(yOf(v) - yZero); }
           var top = st.stacked ? si === vis.length - 1 : true, gap = st.stacked && si > 0 ? 2 : 0;
           var hh = Math.max(0, h - gap);
-          var d = (top && !neg) ? roundedTop(x, y, barW, hh, 5)
-                : (neg ? 'M' + x + ',' + (y + hh) + ' h' + barW + ' v' + (-hh) + ' h' + (-barW) + ' Z'
-                       : 'M' + x + ',' + y + ' h' + barW + ' v' + hh + ' h' + (-barW) + ' Z');
-          g.appendChild(sv('path', { class: 'ck-mark' + (neg ? ' ck-in' : ' ck-rise'), style: delay(ci * 50 + si * 30), d: d, fill: s.color }));
+          // free end rounded, baseline end square: the length datum stays a flat edge
+          var d = top ? (neg ? plumpBot(x, y, barW, hh, undefined, sw) : plumpTop(x, y, barW, hh, undefined, sw))
+                      : 'M' + x + ',' + y + ' h' + barW + ' v' + hh + ' h' + (-barW) + ' Z';
+          if (cid && top && !neg && hh > 0) g.appendChild(sv('ellipse', { cx: x + barW / 2, cy: yZero + 1.4, rx: barW * 0.58, ry: 3.4, fill: 'url(#' + cid + ')' }));
+          g.appendChild(sv('path', { class: 'ck-mark' + (ci === n - 1 ? ' ck-last' : '') + (neg ? ' ck-in' : ' ck-rise'), style: delay(ci * 50 + si * 30), d: d,
+            fill: soft ? softFill(defs, s.color, barW / Math.max(hh, 1) < 0.5) : s.color }));
           var showLabel = !st.stacked && (labels === 'all' || (labels === 'last' && ci === n - 1));
           if (showLabel && !s.dimmed) g.appendChild(sv('text', { class: 'ck-vlabel ck-halo ck-num ck-in', style: delay(400 + ci * 50), x: x + barW / 2, y: neg ? y + hh + 13 : y - 7, 'text-anchor': 'middle', text: fmt(v, f) }));
         });
@@ -401,6 +539,9 @@
     if (o.toggle !== false) ui.controls.appendChild(segmented([{ label: L.lineMode, value: false }, { label: L.areaMode, value: true }], st.area, function (v) { st.area = v; draw(); }));
     ui.controls.appendChild(toggleButton(L.table, false, function (v) { st.table = v; draw(); }));
     var endLabels = o.endLabels !== false, markMax = o.markMax !== undefined ? o.markMax : series.length === 1;
+    var castOn = !!o.cast, castMap = (o.cast && typeof o.cast === 'object') ? o.cast : {};
+    function castFor(name, i) { return castMap[name] || castShape(i); }
+    function castMood(s) { return s.dimmed ? 'flat' : 'up'; }
     var endW = endLabels ? 14 + maxOf(series.map(function (s) { return textW(s.name, 11.5); }).concat(series.map(function (s) { return textW(fmt(s.values[n - 1], f), 11); }))) : 0;
     var padL = 52, padR = Math.max(12, endW), plotH = o.height || 240, plotW = width - 52 - padL - padR, labelH = 26, topPad = (o.annotations && o.annotations.length) ? 22 : (markMax ? 18 : 6);
     function visible() { return series.filter(function (s, i) { return !st.hidden[i]; }); }
@@ -432,10 +573,14 @@
           g.appendChild(sv('path', { class: 'ck-mark ck-in', style: delay(500), d: d + ' L' + plotW.toFixed(1) + ',' + yZero.toFixed(1) + ' L0,' + yZero.toFixed(1) + ' Z', fill: 'url(#' + id + ')' }));
         }
         var si = series.indexOf(s), lead = !s.dimmed && (hl.length ? true : si === 0);
-        g.appendChild(sv('path', { class: 'ck-mark ck-draw', style: delay(si * 120), pathLength: 1, d: d, fill: 'none', stroke: s.color, 'stroke-width': lead ? 2.4 : 1.8, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
+        g.appendChild(sv('path', { class: 'ck-mark ck-draw', style: delay(si * 120), pathLength: 1, d: d, fill: 'none', stroke: s.color, 'stroke-width': lead ? GEO.stroke.lead : GEO.stroke.sub, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
         // the lead series carries a dot on every point (one dot = one period); the others stay as lines
         if (lead && vis.length > 1 && n <= 40 && plotW / n >= 12) s.values.forEach(function (v, i) { g.appendChild(sv('circle', { class: 'ck-in', style: delay(700 + i * 20), cx: xOf(i), cy: yOf(v), r: 2.2, fill: s.color })); });
-        g.appendChild(sv('circle', { class: 'ck-ring ck-in', style: delay(900), cx: xOf(n - 1), cy: yOf(s.values[n - 1]), r: 4, fill: s.color }));
+        // the end token: a plain ring by default, the series' cast member when options.cast is on.
+        // Either way its geometric centre sits ON the last datum — it REPLACES the dot, never joins it.
+        var ex = xOf(n - 1), ey = yOf(s.values[n - 1]);
+        if (castOn) g.appendChild(castAt(castFor(s.name, series.indexOf(s)), s.color, castMood(s), ex, ey, GEO.token, { ring: true }));
+        else g.appendChild(sv('circle', { class: 'ck-ring ck-mark ck-last ck-in', style: delay(900), cx: ex, cy: ey, r: 4.5, fill: s.color }));
       });
       if (endLabels) {
         var labs = vis.map(function (s) { return { s: s, y: yOf(s.values[n - 1]) }; }).sort(function (a, b) { return a.y - b.y; });
@@ -507,8 +652,8 @@
       cd.forEach(function (c, i) {
         var cx = slot * i + slot / 2, up = c.c >= c.o, col = up ? upC : dnC;
         var yo = yOf(c.o), yc = yOf(c.c), top = Math.min(yo, yc), bh = Math.max(1.2, Math.abs(yo - yc));
-        g.appendChild(sv('line', { class: 'ck-mark ck-in', style: delay(i * 18), x1: cx, x2: cx, y1: yOf(c.h), y2: yOf(c.l), stroke: col, 'stroke-width': 1.2 }));
-        g.appendChild(sv('rect', { class: 'ck-mark ck-in', style: delay(i * 18), x: cx - bw / 2, y: top, width: bw, height: bh, fill: col, stroke: col, rx: 1 }));
+        g.appendChild(sv('line', { class: 'ck-mark ck-in', style: delay(i * 18), x1: cx, x2: cx, y1: yOf(c.h), y2: yOf(c.l), stroke: col, 'stroke-width': GEO.stroke.wick, 'stroke-linecap': 'round' }));
+        g.appendChild(sv('rect', { class: 'ck-mark ck-in' + (i === n - 1 ? ' ck-last' : ''), style: delay(i * 18), x: cx - bw / 2, y: top, width: bw, height: bh, fill: col, stroke: col, rx: Math.min(2.5, bw * GEO.rBlock) }));
         var hit = sv('rect', { class: 'ck-hit', x: slot * i, y: 0, width: slot, height: plotH });
         hitEvents(hit, function () {
           // trading-app tooltip: close + change lead (coloured by direction vs the previous close); OHLC and range follow
@@ -547,7 +692,7 @@
     var o = spec.options || {}, f = fOf(o);
     var raw = spec.data.items.slice().sort(function (a, b) { return b.value - a.value; }), maxSlices = o.maxSlices || 6, items = raw;
     if (raw.length > maxSlices) { items = raw.slice(0, maxSlices - 1); items.push({ name: o.otherLabel || L.other, value: sum(raw.slice(maxSlices - 1).map(function (x) { return x.value; })), other: true }); }
-    items = items.map(function (it, i) { return { name: it.name, value: it.value, color: it.other || /^其他|^其它|^other$/i.test(it.name) ? 'var(--ck-other)' : (it.color || SERIES[i % 8]) }; });
+    items = items.map(function (it, i) { return { name: it.name, value: it.value, color: it.other || /^其他|^其它|^other$/i.test(it.name) ? 'var(--ck-other)' : (it.color || PAL[i % 8]) }; });
     var total = sum(items.map(function (x) { return x.value; })), max = maxOf(items.map(function (x) { return x.value; }));
     var st = { view: 'donut' };
     if (o.altBar !== false) ui.controls.appendChild(segmented([{ label: L.donutMode, value: 'donut' }, { label: L.barsMode, value: 'bars' }], 'donut', function (v) { st.view = v; draw(); }));
@@ -607,7 +752,7 @@
   function renderScatter(ui, spec, width) {
     var o = spec.options || {}, fx = o.xFormat || {}, fy = o.yFormat || {}, pts = spec.data.points, names = [];
     pts.forEach(function (p) { var g = p.group || L.all; if (names.indexOf(g) === -1) names.push(g); });
-    var groups = names.map(function (n, i) { return { name: n, color: (spec.data.colors && spec.data.colors[n]) || SERIES[i % 8] }; });
+    var groups = names.map(function (n, i) { return { name: n, color: (spec.data.colors && spec.data.colors[n]) || PAL[i % 8] }; });
     var st = { hidden: groups.map(function () { return false; }), medians: !!o.medians, table: false };
     if (o.medianToggle !== false) ui.controls.appendChild(toggleButton(L.medians, st.medians, function (v) { st.medians = v; draw(); }));
     ui.controls.appendChild(toggleButton(L.table, false, function (v) { st.table = v; draw(); }));
@@ -634,7 +779,14 @@
       var placed = [];
       shown.forEach(function (p, pi) {
         var grp = groups[names.indexOf(p.group || L.all)], cx = xOf(p.x), cy = yOf(p.y);
-        var dot = sv('circle', { class: 'ck-mark ck-ring ck-in', style: delay(Math.min(600, pi * 12)), cx: cx, cy: cy, r: 4.5, fill: grp.color }), hit = sv('circle', { class: 'ck-hit', cx: cx, cy: cy, r: 12 });
+        // shape is a SECOND channel on the same entity — it survives greyscale and colour blindness.
+        // Capped at 3 groups (validated in render.py), so at most 3 silhouettes are ever in play.
+        var gi = names.indexOf(p.group || L.all);
+        var dot = o.cast
+          ? castAt(castShape(gi), grp.color, false, cx, cy, 13, { ring: true, norm: true })
+          : sv('circle', { class: 'ck-mark ck-ring ck-in', style: delay(Math.min(600, pi * 12)), cx: cx, cy: cy, r: 5, fill: grp.color });
+        if (o.cast) dot.setAttribute('class', 'ck-mark ck-in');
+        var hit = sv('circle', { class: 'ck-hit', cx: cx, cy: cy, r: 12 });
         if (top.indexOf(p) !== -1 && p.name) {
           var lx = cx + (cx > plotW - 60 ? -9 : 9), ly = cy + 4, w = textW(p.name, 11) + 10;
           var x0 = cx > plotW - 60 ? lx - w : lx;
@@ -787,10 +939,20 @@
     var items = spec.data.items, cols = (spec.options && spec.options.columns) || Math.min(4, items.length);
     var grid = el('div', { class: 'ck-kpis' + (motionOn(spec) ? ' ck-motion' : ''), style: { width: width + 'px', gridTemplateColumns: 'repeat(' + cols + ', minmax(0, 1fr))' } });
     if (grid.classList.contains('ck-motion')) setTimeout(function () { grid.classList.remove('ck-motion'); }, 1800);
+    var kcastOn = !!(spec.options && spec.options.cast);
     items.forEach(function (it, ti) {
       var tile = el('div', { class: 'ck-kpi ck-in', style: { animationDelay: (ti * 90) + 'ms' } }), good = true, up = true;
       if (typeof it.delta === 'number') { up = it.delta >= 0; good = it.deltaGood === false ? !up : up; }
-      var top = el('div', { class: 'top' }, el('div', { class: 'l', text: it.label }));
+      // The cast member is an identity TOKEN, not the container. The tile keeps the label,
+      // the value and the delta inside one visible boundary; letting the character BE the tile
+      // bursts the number out of the silhouette and orphans the other two.
+      var kcast = kcastOn && (it.shape || castShape(ti));
+      var kcolor = it.color || PAL[ti % 8];
+      var lab = kcast
+        ? el('div', { class: 'id' }, [castEl(kcast, kcolor, good ? 'up' : 'down', 22), el('div', { class: 'l', text: it.label })])
+        : el('div', { class: 'l', text: it.label });
+      var top = el('div', { class: 'top' }, lab);
+      if (kcast) { tile.setAttribute('data-cast', ''); tile.style.setProperty('--ck-kc', kcolor); }
       if (it.trend && it.trend.length > 1) top.appendChild(sparkline(it.trend, 96, 30, typeof it.delta === 'number' ? (good ? 'var(--ck-pos)' : 'var(--ck-neg)') : 'var(--ck-s1)'));
       tile.appendChild(top);
       tile.appendChild(el('div', { class: 'v' + (it.hero ? ' hero' : ''), text: typeof it.value === 'number' ? fmt(it.value, it) : String(it.value) }));
@@ -930,17 +1092,174 @@
   }
 
   /* ---------- entry ---------- */
+
+  /* ================= UNIT FORMS — the mark IS the unit =================
+   * waffle / unit / dotmatrix / statuswall encode COUNT, not length, so the reader counts
+   * objects instead of measuring an edge. That removes the aspect-ratio problem entirely:
+   * every element is 1:1 and takes the full plump treatment with nothing dialled back.
+   * Two hard limits (validated in render.py): the quantity must be COUNTABLE — no continuous
+   * measures, no time series — and shape may encode a CLASS, never a MAGNITUDE, which is why
+   * dotmatrix deliberately uses one silhouette throughout. */
+  function cellNode(shape, color, x, y, size, cls) {
+    var c = CAST[shape] || CAST.circle, k = size * c.k / 72;   // c.k equalises optical area
+    var inner = sv('g', { transform: 'translate(' + x.toFixed(2) + ',' + y.toFixed(2) + ') scale(' + k.toFixed(4) + ') translate(-36,-36)', fill: color });
+    inner.innerHTML = c.d;
+    return sv('g', { class: 'ck-cell' + (cls ? ' ' + cls : '') }, [inner]);
+  }
+  function unitLegend(ui, groups, hidden, onToggle) {
+    clear(ui.legend);
+    if (groups.length < 2) { ui.legend.style.display = 'none'; return; }
+    ui.legend.style.display = '';
+    ui.legend.className = 'ck-unitleg';
+    groups.forEach(function (gp, i) {
+      ui.legend.appendChild(el('button', { type: 'button', 'aria-pressed': String(!hidden[i]), onclick: function () { onToggle(i); } },
+        [castEl(gp.shape, gp.color, false, 15, { norm: true }), gp.name, gp.note ? el('span', { class: 'n', text: gp.note }) : null]));
+    });
+  }
+  function renderUnits(ui, spec, width) {
+    var t = spec.type, o = spec.options || {}, f = fOf(o), d = spec.data, W = width - 52;
+    var st = { table: false, hidden: [] };
+    ui.controls.appendChild(toggleButton(L.table, false, function (v) { st.table = v; draw(); }));
+    function draw() { clear(ui.body); ui.body.appendChild(ui.tip); ({ waffle: waffle, unit: unitCols, dotmatrix: matrix, statuswall: wall })[t](); }
+
+    /* ---- waffle: 100 marks = 100 %. Shape and colour are redundant, so it survives greyscale ---- */
+    function waffle() {
+      var items = d.items, cols = o.cols || 10, cell = o.cell || 13, gap = o.gap === undefined ? 4 : o.gap;
+      var total = o.total || Math.round(sum(items.map(function (it) { return it.value; })));
+      var perF = { format: f.format, decimals: f.decimals, currency: f.currency };
+      var groups = items.map(function (it, i) { return { name: it.name, color: it.color || PAL[i % 8], shape: it.shape || castShape(i), value: it.value, note: fmt(it.value, f) }; });
+      if (st.hidden.length !== groups.length) st.hidden = groups.map(function () { return false; });
+      unitLegend(ui, groups, st.hidden, function (i) { st.hidden[i] = !st.hidden[i]; draw(); });
+      if (st.table) { ui.body.appendChild(tableView([o.categoryLabel || L.category, L.value, L.share],
+        groups.map(function (gp) { return [gp.name, fmt(gp.value, f), (gp.value / total * 100).toFixed(1) + '%']; }))); return; }
+      var pitch = cell + gap, rows = Math.ceil(total / cols);
+      var svg = sv('svg', { class: 'ck-plot ck-units', width: cols * pitch - gap, height: rows * pitch - gap });
+      var i = 0;
+      groups.forEach(function (gp, gi) {
+        var n = Math.round(gp.value / total * (cols * rows));
+        for (var q = 0; q < n && i < cols * rows; q++, i++) {
+          var r = Math.floor(i / cols), c = i % cols;                       // fills bottom-up: a level rising
+          var node = cellNode(gp.shape, gp.color, c * pitch + cell / 2, (rows - 1 - r) * pitch + cell / 2, cell, st.hidden[gi] ? 'dim' : '');
+          svg.appendChild(node);
+          (function (gp) { hitEvents(node, function (e) {
+            var b = svg.getBoundingClientRect(), p = node.getBoundingClientRect();
+            showTip(ui, gp.name, [{ name: L.value, value: fmt(gp.value, f) }, { name: L.share, value: (gp.value / total * 100).toFixed(1) + '%' }], p.left - b.left + cell / 2, p.top - b.top, cols * pitch);
+          }, function () { hideTip(ui); }); })(gp);
+        }
+      });
+      ui.body.appendChild(svg);
+      ui.body.appendChild(el('p', { class: 'ck-scale', text: L.unitIs + fmt(total / (cols * rows), perF) + (o.unitLabel ? ' ' + o.unitLabel : '') + L.shapeNote }));
+    }
+
+    /* ---- unit columns: a bar made of counted marks; the remainder mark is part-filled ---- */
+    function unitCols() {
+      // `per` = how many of the measure one mark stands for. Deliberately NOT `unit`, which is
+      // already the number-format suffix ($, orders, ...) everywhere else in the spec.
+      var cats = d.categories, series = seriesOf(spec), one = o.per || 1, cell = o.cell || 13, gap = o.gap === undefined ? 3 : o.gap;
+      var groups = series.map(function (sr, i) { return { name: sr.name, color: sr.color, shape: sr.shape || castShape(i) }; });
+      if (st.hidden.length !== groups.length) st.hidden = groups.map(function () { return false; });
+      unitLegend(ui, groups, st.hidden, function (i) { st.hidden[i] = !st.hidden[i]; draw(); });
+      if (st.table) { ui.body.appendChild(tableView([o.categoryLabel || L.category].concat(series.map(function (sr) { return sr.name; })),
+        cats.map(function (c, i) { return [c].concat(series.map(function (sr) { return fmt(sr.values[i], f); })); }))); return; }
+      var vis = series.filter(function (sr, i) { return !st.hidden[i]; });
+      var totals = cats.map(function (c, i) { return sum(vis.map(function (sr) { return sr.values[i] || 0; })); });
+      var pitch = cell + gap, maxU = Math.max(1, Math.ceil(maxOf(totals) / one));
+      var slot = Math.max(cell + 12, W / cats.length), plotH = maxU * pitch + 22, labelH = 24;
+      var svg = sv('svg', { class: 'ck-plot ck-units', width: Math.max(W, slot * cats.length), height: plotH + labelH });
+      var defs = sv('defs'); svg.appendChild(defs);
+      var base = plotH;
+      svg.appendChild(sv('line', { class: 'ck-base', x1: 0, x2: slot * cats.length, y1: base, y2: base }));
+      cats.forEach(function (c, ci) {
+        var cx = slot * ci + slot / 2, j = 0;
+        vis.forEach(function (sr) {
+          var gi = series.indexOf(sr), gp = groups[gi], u = (sr.values[ci] || 0) / one, full = Math.floor(u + 1e-9), frac = u - full;
+          for (var q = 0; q < full; q++, j++) svg.appendChild(cellNode(gp.shape, gp.color, cx, base - j * pitch - cell / 2, cell));
+          if (frac > 0.02) {                                  // the remainder is part-filled, never rounded away
+            var id = 'cku' + (++uid), cy = base - j * pitch - cell / 2;
+            defs.appendChild(sv('clipPath', { id: id }, sv('rect', { x: cx - cell, y: cy + cell / 2 - cell * frac, width: cell * 2, height: cell * frac })));
+            var ghost = cellNode(gp.shape, gp.color, cx, cy, cell); ghost.setAttribute('opacity', '0.16'); svg.appendChild(ghost);
+            var part = cellNode(gp.shape, gp.color, cx, cy, cell); part.setAttribute('clip-path', 'url(#' + id + ')'); svg.appendChild(part);
+            j++;
+          }
+        });
+        svg.appendChild(sv('text', { class: 'ck-vlabel ck-num', x: cx, y: base - j * pitch - 6, 'text-anchor': 'middle', text: fmt(totals[ci], f) }));
+        svg.appendChild(sv('text', { class: 'ck-num', x: cx, y: base + 18, 'text-anchor': 'middle', text: c }));
+        var hit = sv('rect', { class: 'ck-hit', x: slot * ci, y: 0, width: slot, height: base });
+        hitEvents(hit, function () {
+          showTip(ui, c, vis.map(function (sr) { return { name: sr.name, color: sr.color, shape: 'rect', value: fmt(sr.values[ci], f) }; })
+            .concat(vis.length > 1 ? [{ name: L.total, value: fmt(totals[ci], f), em: true }] : []), cx, 20, W);
+        }, function () { hideTip(ui); });
+        svg.appendChild(hit);
+      });
+      ui.body.appendChild(svg);
+      ui.body.appendChild(el('p', { class: 'ck-scale', text: L.unitIs + fmt(one, { format: f.format, decimals: f.decimals }) + (o.unitLabel ? ' ' + o.unitLabel : '') }));
+    }
+
+    /* ---- dot matrix: density. Size AND opacity say the same thing, so it survives greyscale.
+     *      Deliberately ONE silhouette: sessions are a magnitude, and a second shape here would
+     *      send the reader hunting for a grouping that does not exist. ---- */
+    function matrix() {
+      var rows = d.rows, cols = d.cols, vals = d.values, cell = o.cell || 18, lw = o.rowLabelWidth || 34;
+      if (st.table) { ui.body.appendChild(tableView([''].concat(cols), rows.map(function (r, i) { return [r].concat(vals[i].map(function (v) { return fmt(v, f); })); }))); return; }
+      var mx = maxOf(vals.map(function (r) { return maxOf(r); })), mn = o.min === undefined ? 0.3 : o.min;
+      var pitch = cell + 3;
+      var svg = sv('svg', { class: 'ck-plot ck-units', width: lw + cols.length * pitch, height: rows.length * pitch + 20 });
+      rows.forEach(function (r, ri) {
+        svg.appendChild(sv('text', { class: 'ck-num', x: lw - 8, y: ri * pitch + cell / 2 + 4, 'text-anchor': 'end', text: r }));
+        cols.forEach(function (c, ci) {
+          var v = vals[ri][ci] || 0, t = mx ? v / mx : 0, sz = cell * (mn + (1 - mn) * t);
+          var node = cellNode('squircle', 'var(--ck-s1)', lw + ci * pitch + cell / 2, ri * pitch + cell / 2, sz);
+          node.setAttribute('opacity', (0.3 + 0.7 * t).toFixed(2));
+          svg.appendChild(node);
+          var hit = sv('rect', { class: 'ck-hit', x: lw + ci * pitch, y: ri * pitch, width: pitch, height: pitch });
+          hitEvents(hit, function () { showTip(ui, r + ' · ' + c, [{ name: o.valueLabel || L.value, value: fmt(v, f) }], lw + ci * pitch + cell / 2, ri * pitch, W); }, function () { hideTip(ui); });
+          svg.appendChild(hit);
+        });
+      });
+      cols.forEach(function (c, ci) { if (!o.everyCol && ci % Math.ceil(cols.length / 8) && ci !== cols.length - 1) return;
+        svg.appendChild(sv('text', { class: 'ck-num', x: lw + ci * pitch + cell / 2, y: rows.length * pitch + 14, 'text-anchor': 'middle', text: c })); });
+      ui.body.appendChild(svg);
+      ui.body.appendChild(el('p', { class: 'ck-scale', text: (o.valueLabel || L.value) + L.darkerHigher }));
+    }
+
+    /* ---- status wall: discrete states. Severity must NEVER be colour alone — that is the
+     *      classic colour-blindness trap — so every state also carries its own silhouette. ---- */
+    function wall() {
+      var items = d.items, defs = d.states || [{ key: 'ok', label: 'OK', tone: 'good' }];
+      var TONE = { good: 'var(--ck-good)', warn: 'var(--ck-warn)', serious: 'var(--ck-serious)', critical: 'var(--ck-critical)' };
+      var cell = o.cell || 18, cols = o.cols || Math.min(10, Math.ceil(Math.sqrt(items.length * 2))), pitch = cell + 5;
+      var byKey = {}; defs.forEach(function (sd, i) { byKey[sd.key] = { name: sd.label || sd.key, color: sd.color || TONE[sd.tone] || PAL[i % 8], shape: sd.shape || castShape(i), key: sd.key }; });
+      var groups = defs.map(function (sd) { var gp = byKey[sd.key]; gp.note = String(items.filter(function (it) { return it.status === sd.key; }).length); return gp; });
+      unitLegend(ui, groups, groups.map(function () { return false; }), function () {});
+      if (st.table) { ui.body.appendChild(tableView([L.name, L.status], items.map(function (it) { return [it.name, (byKey[it.status] || { name: it.status }).name]; }))); return; }
+      var rows = Math.ceil(items.length / cols);
+      var svg = sv('svg', { class: 'ck-plot ck-units', width: cols * pitch, height: rows * pitch });
+      items.forEach(function (it, i) {
+        var gp = byKey[it.status] || { color: DIM, shape: 'circle', name: it.status };
+        var cx = (i % cols) * pitch + cell / 2, cy = Math.floor(i / cols) * pitch + cell / 2;
+        svg.appendChild(cellNode(gp.shape, gp.color, cx, cy, cell));
+        var hit = sv('rect', { class: 'ck-hit', x: cx - pitch / 2, y: cy - pitch / 2, width: pitch, height: pitch });
+        hitEvents(hit, function () { showTip(ui, it.name, [{ name: L.status, color: gp.color, shape: 'dot', value: gp.name }].concat(it.note ? [{ name: '', value: it.note }] : []), cx, cy - cell, cols * pitch); }, function () { hideTip(ui); });
+        svg.appendChild(hit);
+      });
+      ui.body.appendChild(svg);
+    }
+    draw();
+  }
+
   function render(container, spec) {
     if (typeof container === 'string') container = document.querySelector(container);
     L = STR[pickLang(spec)] || STR.en;
+    PAL = PALETTES[(spec.options || {}).palette] || SERIES;
     var width = spec.width || 720;
     if (spec.type === 'kpi') return renderKpi(container, spec, width);
     var ui = card(spec, width);
-    var fn = { bar: renderBar, line: renderLine, area: renderLine, candle: renderCandle, donut: renderDonut, scatter: renderScatter, heatmap: renderHeatmap, funnel: renderFunnel, table: renderTable }[spec.type];
+    var fn = { bar: renderBar, line: renderLine, area: renderLine, candle: renderCandle, donut: renderDonut, scatter: renderScatter, heatmap: renderHeatmap, funnel: renderFunnel, table: renderTable,
+      waffle: renderUnits, unit: renderUnits, dotmatrix: renderUnits, statuswall: renderUnits }[spec.type];
     if (!fn) ui.body.appendChild(el('div', { class: 'ck-empty', text: L.unknownType + spec.type }));
     else fn(ui, spec, width);
     container.appendChild(ui.root);
     return ui.root;
   }
-  window.ChartKit = { render: render, fmt: fmt, SERIES: SERIES, defaults: DEFAULTS };
+  window.ChartKit = { render: render, fmt: fmt, SERIES: SERIES, defaults: DEFAULTS, cast: castEl, CAST: CAST, GEO: GEO };
 })();

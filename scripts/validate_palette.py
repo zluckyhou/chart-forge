@@ -97,15 +97,27 @@ def main():
     ap.add_argument('--ordinal', action='store_true')
     ap.add_argument('--pairs', choices=['adjacent', 'all'], default='adjacent', help='use all for scatter and bubble charts')
     ap.add_argument('--from-json', help='validate both palettes in palette.json')
+    ap.add_argument('--set', default='all', help="which categorical set: 'all' (every set in the file), the default set, or a named one such as 'bloom'")
     a = ap.parse_args()
     fails = 0
     if a.from_json:
         pj = json.load(open(a.from_json, encoding='utf-8'))
+        cat = pj['categorical']
+        # every alternative set is gated by the same checks as the default one — an alternative
+        # palette that has not passed both modes does not ship.
+        sets = ['default'] + [k for k in cat if isinstance(cat[k], dict) and 'light' in cat[k]]
+        if a.set != 'all':
+            sets = [a.set]
+        for name in sets:
+            src = cat if name == 'default' else cat[name]
+            print(f"===== categorical set: {name} =====")
+            for mode in ('light', 'dark'):
+                surf = pj['chrome'][mode]['surface']
+                fails += check(src[mode], mode, surf); print()
+                fails += check(src[mode][:3], mode, surf, pairs='all'); print()
+            print()
         for mode in ('light', 'dark'):
-            surf = pj['chrome'][mode]['surface']
-            fails += check(pj['categorical'][mode], mode, surf); print()
-            fails += check(pj['categorical'][mode][:3], mode, surf, pairs='all'); print()
-            fails += check(pj['ordinal'][mode], mode, surf, ordinal=True); print()
+            fails += check(pj['ordinal'][mode], mode, pj['chrome'][mode]['surface'], ordinal=True); print()
     else:
         if not a.colors: ap.error('pass a colour list or --from-json')
         surf = a.surface or ('#fffffe' if a.mode == 'light' else '#17181c')

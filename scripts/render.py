@@ -19,7 +19,11 @@ ASSETS = os.path.join(os.path.dirname(HERE), "assets")
 FONT_LINK = ('<link rel="preconnect" href="https://fonts.googleapis.com">'
              '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
              '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&display=swap">')
-TYPES = {"bar", "line", "area", "candle", "donut", "scatter", "heatmap", "funnel", "kpi", "table"}
+TYPES = {"bar", "line", "area", "candle", "donut", "scatter", "heatmap", "funnel", "kpi", "table",
+         "waffle", "unit", "dotmatrix", "statuswall"}
+# The unit family encodes COUNT, not length. Two limits are enforced below: the quantity has to be
+# countable (so no continuous measure and no time series), and the marks have to stay countable —
+# past roughly 150 of them nobody counts, they estimate, and a bar chart does that better.
 
 
 def read(path):
@@ -83,6 +87,50 @@ def validate(spec, path="spec"):
             errs.append(f"{path}: funnel steps must decrease — check the order")
     elif t == "kpi":
         need(["items"])
+    elif t == "waffle":
+        need(["items"])
+        items = d.get("items", [])
+        if len(items) < 2:
+            errs.append(f"{path}: a waffle needs at least 2 items — for a single number use kpi")
+        if len(items) > 6:
+            errs.append(f"{path}: {len(items)} waffle groups — past 6 the marks stop being countable; fold the tail into Other")
+        if any((it.get("value") or 0) < 0 for it in items):
+            errs.append(f"{path}: waffle values must be >= 0 — a count cannot be negative")
+        o = spec.get("options") or {}
+        cells = (o.get("cols") or 10) * -(-int(o.get("total") or round(sum((it.get("value") or 0) for it in items)) or 100) // (o.get("cols") or 10))
+        if cells > 200:
+            errs.append(f"{path}: {cells} waffle cells — past ~150 nobody counts them; raise the unit or use bar")
+    elif t == "unit":
+        need(["categories", "series"])
+        cats, ser = d.get("categories", []), d.get("series", [])
+        for sr in ser:
+            if len(sr.get("values", [])) != len(cats):
+                errs.append(f"{path}: series {sr.get('name')!r} has {len(sr.get('values', []))} values for {len(cats)} categories")
+        if len(ser) > 4:
+            errs.append(f"{path}: {len(ser)} unit series — shape is the second channel here and only ~4 silhouettes stay apart; merge the tail")
+        one = (spec.get("options") or {}).get("per") or 1
+        tallest = max([sum((sr.get("values") or [0])[i] or 0 for sr in ser) for i in range(len(cats))] or [0])
+        if one and tallest / one > 30:
+            errs.append(f"{path}: tallest column is {tallest / one:.0f} marks — past ~30 nobody counts; raise options.per or use bar")
+    elif t == "dotmatrix":
+        need(["rows", "cols", "values"])
+        vals = d.get("values", [])
+        if len(vals) != len(d.get("rows", [])):
+            errs.append(f"{path}: values has {len(vals)} rows for {len(d.get('rows', []))} row labels")
+        for i, row in enumerate(vals):
+            if len(row) != len(d.get("cols", [])):
+                errs.append(f"{path}: values[{i}] has {len(row)} cells for {len(d.get('cols', []))} columns")
+                break
+    elif t == "statuswall":
+        need(["items"])
+        states = {sd.get("key") for sd in d.get("states", [])}
+        if not states:
+            errs.append(f"{path}: statuswall needs data.states — every state carries its own label, colour and silhouette")
+        if len(states) > 5:
+            errs.append(f"{path}: {len(states)} states — past 5 the silhouettes start interfering; group the tail")
+        unknown = sorted({it.get("status") for it in d.get("items", [])} - states)
+        if unknown:
+            errs.append(f"{path}: items use statuses not declared in data.states: {unknown}")
     elif t == "table":
         need(["columns", "rows"])
         keys = {c.get("key") for c in d.get("columns", [])}

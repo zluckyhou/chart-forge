@@ -18,6 +18,29 @@ that proves it fastest.
 | Step-by-step drop-off | "Where do people leave checkout?" | `funnel` | Steps must decrease. The neck shows the loss; the worst step is badged. |
 | Composition changing over time | "How did the channel mix shift?" | stacked `bar`, or `area` small multiples | Avoid 100 % stacked areas — the middle bands are unreadable. |
 | Two measures of very different magnitude | "Users vs revenue" | **two charts**, or index both to 100 | Never a second y-axis. |
+| Part of a whole, and the reader will **count** | "How much of revenue is subscription?" | `waffle` | 100 marks = 100 %. Beats a donut when shares are close, because counting beats estimating an angle. |
+| A small count, per category | "How many customers signed this week?" | `unit` | One mark = one whole thing. Only when the tallest column is ≤ 30 marks. |
+| Density, when the grid should read as objects | "Which weekday and hour is busiest?" | `dotmatrix` | Size **and** shade say the same thing, so it survives greyscale. One silhouette throughout — see below. |
+| Discrete states across many things | "Which services are down?" | `statuswall` | Every state has its own silhouette as well as its colour. Severity is never colour alone. |
+
+## The countable / continuous fork
+
+Before anything else, ask **what kind of quantity this is** — it decides a whole family of forms:
+
+- **Countable** — counts, shares, densities, discrete states. The unit family (`waffle`, `unit`,
+  `dotmatrix`, `statuswall`) encodes *quantity of marks*: the reader counts objects instead of measuring
+  an edge, and every mark is a 1:1 shape that carries the full plump treatment. It also opens a second
+  channel — **shape** — so a group survives greyscale and colour blindness.
+- **Continuous** — prices, rates, temperatures, anything with a decimal that means something. It cannot
+  be cut into marks, so it stays with `bar`, `line`, `area`, `candle`, `heatmap`. These keep the same
+  element layer (radius, end token, stroke scale, elevation, state motion, palette) but never change form.
+
+Two guards: keep it under ~150 marks per chart and ~30 per column — past that nobody counts, they
+estimate, and a bar chart estimates better. And **one mark must stand for a round number**; "one mark =
+37.4" is not a unit. `--validate` enforces both.
+
+`waffle` vs `donut`: reach for the waffle when the shares are close or the reader will be quoted the
+number, and for the donut when one slice obviously dominates and the shape of the split is the point.
 
 ## After picking, do three things
 

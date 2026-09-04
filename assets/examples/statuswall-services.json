@@ -1,0 +1,25 @@
+{
+  "type": "statuswall",
+  "title": "两个服务故障，都在支付链路上",
+  "subtitle": "服务健康度 · 实时 · 示例数据",
+  "note": "严重程度从不只用颜色表示：降级是三角，故障是方块。",
+  "data": {
+    "states": [
+      { "key": "ok", "label": "正常", "tone": "good", "shape": "circle" },
+      { "key": "degraded", "label": "降级", "tone": "warning", "shape": "triangle", "color": "var(--ck-warn)" },
+      { "key": "down", "label": "故障", "tone": "critical", "shape": "squircle", "color": "var(--ck-critical)" }
+    ],
+    "items": [
+      { "name": "api-gateway", "status": "ok" }, { "name": "auth", "status": "ok" },
+      { "name": "billing", "status": "degraded", "note": "p99 1.8s" }, { "name": "search", "status": "ok" },
+      { "name": "pay-router", "status": "down", "note": "上游超时" }, { "name": "pay-ledger", "status": "down", "note": "依赖 pay-router" },
+      { "name": "notify", "status": "ok" }, { "name": "media", "status": "ok" },
+      { "name": "cdn-edge", "status": "ok" }, { "name": "webhooks", "status": "degraded", "note": "重试积压" },
+      { "name": "analytics", "status": "ok" }, { "name": "warehouse", "status": "ok" },
+      { "name": "scheduler", "status": "ok" }, { "name": "export", "status": "ok" },
+      { "name": "admin", "status": "ok" }, { "name": "docs", "status": "ok" }
+    ]
+  },
+  "options": { "cols": 8, "cell": 20 },
+  "width": 520
+}
