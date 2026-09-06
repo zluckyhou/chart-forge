@@ -7,8 +7,8 @@ rendered image.
 
 - **The title is a conclusion**, not a metric name: "Analytics overtook Automation for second place",
   not "ARR by product". The metric name belongs in the `subtitle`, with the period, unit and provenance.
-- Two lines of copy, never three. A third stacked line pushes the chart down and gets skipped anyway.
-- Keep the title short enough to stay on one line (~52 English characters at the default width).
+- Two typographic levels: conclusion and context. Allow wrapping; do not shrink Chinese titles to force one line. A data-backed spotlight may sit below them on a hero trend chart.
+- Keep titles concise; two lines at narrow widths are preferable to clipped or tiny text.
 - Numbers quoted in the title must be readable somewhere in the chart.
 - `note` is for a caveat or a reading hint — not filler. `source` is provenance only — a dataset, an
   export, a report — set in small caps under the chart; leave it out rather than invent one.
@@ -29,11 +29,11 @@ rendered image.
 
 ## Marks and layout
 
-- **One element scale, every form.** Bars ≤ 26 px and never more than 0.60 of their slot — past that the
-  gaps read as slots rather than the bars reading as objects. Corner radius is `0.38 × bar width`
-  (`0.34 × short side` for a block); **0.5 makes a semicircle and the bar reads as a finger** — that is the
-  ceiling, not the target. Lines 2.4 px lead / 2.0 px others, candle wicks 1.4 px, dots ≥ 10 px.
-  Separate touching fills with a 2 px gap in the surface colour, never with a stroke.
+- **Geometry follows the reading task.** Studio bars use up to 48 px width, no more than 0.60 of
+  their slot, and a 4 px free-end corner; the baseline stays square. Studio ledger ranking bars are 12 px high below a name/value line;
+  lead lines are 3.2 px and comparison lines 1.8 px. Dense marks become thinner with available space.
+  Classic retains its 26 px limit and proportional rounding. Do not force every form into the same
+  pill silhouette. Heatmap cells have 3 px corners in Studio so the field stays coherent.
 - **Volume is dosed by aspect ratio.** A 1:1 mark (KPI token, legend key, unit cell, scatter dot) takes the
   full treatment; a 1:4 bar takes about a third of it and no specular. Applying a 1:1 dose to a long thin
   mark is what makes it look like a plastic cylinder.
@@ -75,7 +75,7 @@ rendered image.
   refresh / error` let the marks report their own condition instead of a skeleton overlay or a spinner, and
   they obey the axis rule above. A settled chart has no `state` and therefore does not move. A state never
   relies on motion alone: it always ships a word too, for reduced-motion and for the PNG.
-- Small caps (9.5 px, letter-spaced) are for annotations, reference labels and the source line — never
+- Small caps are for short annotations and reference labels; Studio sources use readable 10 px mixed case — never
   for anything the reader must read to get the number. Minimum for those is 10.5 px.
 - Publishing a chart (`register: publish`, PNG, slides) is a reason to *remove* chrome, not to add
   decoration: the toolbar goes, the legend folds into the end labels, the rest stays as it was.
@@ -110,7 +110,7 @@ rendered image.
 ## Anti-patterns — if the output matches one of these, fix it
 
 - A second y-axis. A rainbow ramp for magnitude. More than 8 categorical colours.
-- A bar chart with one bar; a two-slice donut; a donut with more than six slices.
+- A bar chart with one bar when a KPI would suffice; a donut with more than six slices. Two-slice donuts can serve a simple share, while bars are better for close comparisons.
 - Shading nominal categories by size — that encodes length twice and wastes the colour channel.
 - A label clipped by its own bar; a title that is only the metric name; a number on every point.
 - Extra metrics, icons or captions added to fill space.

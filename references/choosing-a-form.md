@@ -10,7 +10,7 @@ that proves it fastest.
 | Change over time | "How did DAU move, and where did it turn?" | `line` (several series) / `area` (one) | Annotate the event that explains the turn; add the target as a reference line. ≤ 4 series, otherwise small multiples. |
 | Compare categories | "Which channel/month/version is biggest?" | `bar` (vertical, grouped or stacked) | Vertical when the categories have a time order. ≤ 8 categories. |
 | Rank, find the head or the tail | "Who leads, who is below average?" | `bar` + `horizontal: true` | Sorted, numbered, with an average line. Highlight only the subject of the sentence. |
-| Part of a whole | "Where do orders come from?" | `donut` | ≤ 6 slices; switch to bars when shares are close. Two slices is a `kpi`, not a donut. |
+| Part of a whole | "Where do orders come from?" | `donut` | ≤ 6 slices; switch to bars when shares are close. For two slices, a KPI or a simple share bar often reads faster. |
 | Relationship between two measures | "Does spend actually buy signups?" | `scatter` | ≤ 3 groups. Turn on medians to read it as quadrants. |
 | Density across two dimensions | "Which weekday and hour is busiest?" | `heatmap` | One hue, light → dark. Marginal bars give the row and column totals. |
 | Price / OHLC over time | "How did it trade this quarter?" | `candle` | Axis frames the range instead of anchoring at zero. |
@@ -25,7 +25,8 @@ that proves it fastest.
 
 ## The countable / continuous fork
 
-Before anything else, ask **what kind of quantity this is** — it decides a whole family of forms:
+Choose by the comparison task first. Countable data does not require a unit chart; ordinary bars and
+lines remain the default for fast comparison. Then check whether a unit encoding adds meaning:
 
 - **Countable** — counts, shares, densities, discrete states. The unit family (`waffle`, `unit`,
   `dotmatrix`, `statuswall`) encodes *quantity of marks*: the reader counts objects instead of measuring
@@ -46,7 +47,7 @@ number, and for the donut when one slice obviously dominates and the shape of th
 
 1. **Write a conclusion title.** `title` is the sentence ("Mobile passed desktop in September");
    `subtitle` carries what is measured, the period, the unit and the provenance
-   ("Sessions by device · Jan 2025 – Jun 2026 · thousands · sample data"). Two lines, never three.
+   ("Sessions by device · Jan 2025 – Jun 2026 · thousands · sample data"). Two typographic levels, with natural wrapping.
 2. **Decide the emphasis.** One subject → `highlight` it and let the rest go grey. A target → `refLines`.
    A turning point with a cause → `annotations`.
 3. **Check the data fits the form.** Fold a long tail into "Other" past 8 series; split scatter groups

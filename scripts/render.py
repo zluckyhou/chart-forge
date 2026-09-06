@@ -12,7 +12,7 @@ Usage:
 
 Output HTML has zero external dependencies except the optional Google Fonts link.
 """
-import argparse, json, os, sys
+import argparse, json, os, sys, math
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ASSETS = os.path.join(os.path.dirname(HERE), "assets")
@@ -37,6 +37,20 @@ def validate(spec, path="spec"):
     t = spec.get("type")
     if t not in TYPES:
         return [f"{path}: type must be one of {sorted(TYPES)}, got {t!r}"]
+    if spec.get("style", "studio") not in ("studio", "classic"):
+        errs.append(f"{path}: style must be one of studio, classic")
+    sp = spec.get("spotlight")
+    if sp is not None:
+        if t not in ("line", "area") or not isinstance(sp, dict):
+            errs.append(f"{path}: spotlight is required to be an object on a line or area chart")
+        else:
+            matches = [s for s in (spec.get("data") or {}).get("series", []) if s.get("name") == sp.get("series")]
+            if len(matches) != 1:
+                errs.append(f"{path}: spotlight.series is required to match exactly one series")
+            elif not matches[0].get("values") or not isinstance(matches[0]["values"][-1], (int, float)) or not math.isfinite(matches[0]["values"][-1]):
+                errs.append(f"{path}: spotlight is required to have a finite latest value")
+            if sp.get("compare") not in (None, "previous"):
+                errs.append(f"{path}: spotlight.compare must be one of previous or omitted")
     d = spec.get("data")
     if not isinstance(d, dict):
         return [f"{path}: no data object"]
@@ -44,6 +58,12 @@ def validate(spec, path="spec"):
         for k in keys:
             if k not in d:
                 errs.append(f"{path}: data.{k} is required for a {t} chart")
+    if (spec.get("options") or {}).get("difference"):
+        ss = d.get("series", [])
+        if t != "line" or len(ss) != 2 or not d.get("x") or any(not isinstance(v, (int,float)) or not math.isfinite(v) for sr in ss for v in sr.get("values", [])):
+            errs.append(f"{path}: difference is required to use a line with exactly two complete finite series")
+    if spec.get("layout") not in (None, "feature"):
+        errs.append(f"{path}: layout must be one of feature or omitted")
     if t == "bar":
         need(["categories", "series"])
         if "series" in d:
@@ -194,6 +214,7 @@ def main():
     ap.add_argument("--png", action="store_true", help="also write a PNG next to the HTML")
     ap.add_argument("--theme", choices=["auto", "light", "dark"], default="auto")
     ap.add_argument("--register", choices=["analyse", "publish"], default="analyse", help="analyse: toolbar always visible (default); publish: toolbar appears on hover only and never in the PNG")
+    ap.add_argument("--style", choices=["studio", "classic"], help="override the visual style for this page (default: studio)")
     ap.add_argument("--no-webfont", action="store_true")
     ap.add_argument("--title", help="page title (defaults to the first spec's title)")
     ap.add_argument("--validate", action="store_true", help="validate only, render nothing")
@@ -221,6 +242,8 @@ def main():
     out = a.out or (os.path.splitext(a.specs[0])[0] + ".html" if len(a.specs) == 1 else None)
     if not out:
         sys.exit("pass -o when rendering several specs")
+    if a.style:
+        specs = [dict(s, style=a.style) for s in specs]
     title = a.title or specs[0].get("pageTitle") or specs[0].get("title") or "Chart"
     width = max(int(s.get("width", 720)) for s in specs)
     html = build_html(specs, title, title, a.theme, not a.no_webfont, width, a.register)

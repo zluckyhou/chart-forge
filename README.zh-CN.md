@@ -16,9 +16,11 @@
 
 </div>
 
+> **默认样式已升级为 Studio / Signal。** 开放式版面、数值排名条、数据关键数侧栏（`layout: feature`）和可选的双线差距色带。运行 `python3 scripts/design_preview.py preview.html` 查看当前交互设计。下方首图展示当前设计；后面的各图型图片保留上一个 **Classic** 版本，可用 `--style classic` 切换。
+
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/gallery/hero-dark.png?v=0.2.1">
-  <img alt="四张图：带末端标签与事件标注的折线、带平均线的排名条、带行列边际条的热力图、带格内条的对比表" src="assets/gallery/hero.png?v=0.2.1">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/gallery/studio-signal-dark.png">
+  <img alt="Studio Signal：关键数侧栏、双线差距色带、末端差额与直接标签" src="assets/gallery/studio-signal.png">
 </picture>
 <p align="center"><sub>README 里每张图都由本 skill 从 <code>assets/examples/</code> 的规格渲染而来，浅色与深色出自同一个文件。</sub></p>
 
@@ -120,15 +122,15 @@ K 线图和华夫图看起来像同一个产品，靠的不是形状相同，而
 ## 为什么比默认图表更好读
 
 - **标题就是结论。**「Analytics 反超 Automation 升到第二」而不是「各产品线 ARR」。指标名、时间范围、
-  单位和口径放在副标题一行里。头部只有两行，绝不三行。
+  单位和口径放在副标题一行里。头部保持两个文字层级并允许换行；主趋势可增加由数据生成的关键数。
 - **强调是一等公民。** `highlight` 把一个对象提亮、其余退灰，让一张图只讲一件事，而不是摆出八种颜色却没有论点。
 - **直接标注胜过来回查找。** 线的末端、峰值、最新一期、散点的头部会自己标注；其余交给悬停和表格视图。
 - **颜色跟随实体，不跟随名次。** 隐藏一个系列，其余颜色不会重新分配。
 - **永远没有第二根 Y 轴。** 量级差很远的两个指标，要么两张图，要么统一指数化。
 - **每张图都有表格孪生。** 悬停只增强不独占：所有数值都能用键盘读到，也照顾无法悬停的读者。
-- **编辑部感，不是后台感。** 暖白底上一张圆角、发丝边、无阴影的卡片；工具栏安静（`publish` 态悬停才出现）；
-  标注和 `source` 来源行用小号大写字；加载时一次入场（柱生长、线描入、弧渐现），之后静止。
-  两个寄存器共用同一套色板和图形，只有 chrome 不同。
+- **Studio / Signal 版式。** 开放式边框与细分隔线、数值排名条和可选关键数侧栏建立主次；
+  双线差距色带直接表达差额。`publish` 隐藏工具栏直到悬停，`classic` 保留上一版圆角卡片。
+  动效一次入场后静止。详见 [`references/design-language.md`](references/design-language.md)。
 
 完整规则与反模式清单见 [`references/rules.md`](references/rules.md)；「该用哪种图」的决策表见
 [`references/choosing-a-form.md`](references/choosing-a-form.md)；规格逐字段说明见

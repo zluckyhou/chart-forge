@@ -27,7 +27,9 @@
   var ORDINAL_INK = ['#16161a', '#16161a', '#ffffff', '#ffffff', '#ffffff', '#ffffff'];
   var DIM = 'var(--ck-dim)';
   var uid = 0;
-  var DEFAULTS = { register: 'analyse', motion: true };
+  var DEFAULTS = { register: 'analyse', motion: true, style: 'studio' };
+  function featureOf(spec) { return styleOf(spec) === 'studio' && spec.layout === 'feature' && spec.spotlight && (spec.type === 'line' || spec.type === 'area') && (spec.width || 720) >= 900; }
+  function styleOf(spec) { return spec.style === 'classic' || spec.style === 'studio' ? spec.style : DEFAULTS.style; }
   function motionOn(spec) {
     if (spec.motion === false || (spec.motion === undefined && !DEFAULTS.motion)) return false;
     if (document.documentElement.getAttribute('data-motion') === 'off') return false;
@@ -185,6 +187,15 @@
     return d;
   }
   function linePath(pts, smooth) { return smooth ? smoothPath(pts) : 'M' + pts.map(function (p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' L'); }
+  // Reverse the already computed cubic segments, so the ribbon boundary is identical
+  // to the visible curve even when monotone tangent limiting is order-sensitive.
+  function reverseLinePath(pts, smooth) {
+    if (!smooth || pts.length < 3) return linePath(pts.slice().reverse(), false);
+    var nums = linePath(pts, true).match(/-?\d+(?:\.\d+)?/g).map(Number);
+    var d = 'M' + nums[nums.length-2] + ',' + nums[nums.length-1];
+    for (var i=nums.length-6; i>=2; i-=6) d += ' C' + nums[i+2]+','+nums[i+3]+' '+nums[i]+','+nums[i+1]+' '+nums[i-2]+','+nums[i-1];
+    return d;
+  }
   function roundedTop(x, y, w, h, r) {
     r = Math.min(r === undefined ? 0.38 * w : r, w / 2, h); if (h <= 0) return '';
     return 'M' + x + ',' + (y + h) + ' V' + (y + r) + ' Q' + x + ',' + y + ' ' + (x + r) + ',' + y + ' H' + (x + w - r) + ' Q' + (x + w) + ',' + y + ' ' + (x + w) + ',' + (y + r) + ' V' + (y + h) + ' Z';
@@ -320,7 +331,7 @@
   /* ---------- card shell ---------- */
   function card(spec, width) {
     var reg = spec.register === 'publish' || spec.register === 'analyse' ? spec.register : DEFAULTS.register;
-    var c = el('figure', { class: 'ck-card' + (motionOn(spec) ? ' ck-motion' : ''), 'data-register': reg, style: { width: width + 'px' } });
+    var c = el('figure', { class: 'ck-card' + (motionOn(spec) ? ' ck-motion' : ''), 'data-register': reg, 'data-style': styleOf(spec), 'data-layout': featureOf(spec) ? 'feature' : null, 'aria-label': spec.title || '', style: { width: width + 'px' } });
     // Motion as a STATE channel, not decoration: with no `state` the chart is still, as before.
     // Every state keyframe moves scaleX / opacity / saturate only — never the encoding axis.
     var STATES = { load: 'stLoad', stream: 'stStream', stale: 'stStale', refresh: 'stRefresh', error: 'stError' };
@@ -337,7 +348,27 @@
     var controls = el('div', { class: 'ck-controls' });
     // the state never relies on motion alone: it always ships a word, for reduced-motion and PNG
     if (state) controls.appendChild(el('span', { class: 'ck-state' }, [el('i'), L[STATES[state]]]));
-    head.appendChild(controls); c.appendChild(head);
+    if (styleOf(spec) === 'classic') head.appendChild(controls);
+    c.appendChild(head);
+    if (spec.spotlight && (spec.type === 'line' || spec.type === 'area')) {
+      var sp = spec.spotlight, sr = spec.data.series.filter(function (x) { return x.name === sp.series; })[0];
+      if (sr && sr.values.length) {
+        var last = sr.values.length - 1, val = sr.values[last], prev = sr.values[last - 1];
+        var focus = el('div', { class: 'ck-spotlight' });
+        focus.appendChild(el('div', { class: 'ck-spot-main' }, [
+          el('span', { class: 'ck-spot-label', text: sp.label || sr.name }),
+          el('strong', { class: 'ck-spot-value ck-num', text: fmt(val, fOf(spec.options || {})) })
+        ]));
+        var detail = el('div', { class: 'ck-spot-detail' });
+        detail.appendChild(el('span', { text: spec.data.x[last] }));
+        if (sp.compare === 'previous' && last > 0 && typeof val === 'number' && typeof prev === 'number' && prev !== 0) {
+          var delta = (val - prev) / Math.abs(prev) * 100;
+          detail.appendChild(el('span', { class: 'ck-spot-delta ck-num', text: (delta > 0 ? '+' : '') + delta.toFixed(1) + '% · ' + (pickLang(spec) === 'zh' ? '较上一期' : 'vs previous') }));
+        }
+        focus.appendChild(detail); c.appendChild(focus);
+      }
+    }
+    if (styleOf(spec) !== 'classic') c.appendChild(controls);
     var legend = el('div', { class: 'ck-legend' }); c.appendChild(legend);
     var body = el('div', { class: 'ck-body' }); c.appendChild(body);
     var tip = el('div', { class: 'ck-tip' }); body.appendChild(tip);
@@ -460,7 +491,8 @@
       axisY(g, plotW, plotH, axis, f);
       var slot = plotW / n, k = vis.length;
       // slot occupancy 0.60 leaves real air between bars; 0.79 makes them read as slots, not objects
-      var barW = st.stacked ? Math.min(GEO.barMax, slot * GEO.barSlot) : Math.min(GEO.barMax, (slot * GEO.barSlot - 3 * (k - 1)) / k);
+      var barLimit = styleOf(spec) === 'studio' ? 48 : GEO.barMax;
+      var barW = st.stacked ? Math.min(barLimit, slot * GEO.barSlot) : Math.min(barLimit, (slot * GEO.barSlot - 3 * (k - 1)) / k);
       var soft = finishOf(spec) === 'soft', sw = soft ? GEO.swell * barW : 0, cid = soft ? contactId(defs) : null;
       var groupW = st.stacked ? barW : barW * k + 3 * (k - 1);
       var bandEls = [];
@@ -475,7 +507,7 @@
           var top = st.stacked ? si === vis.length - 1 : true, gap = st.stacked && si > 0 ? 2 : 0;
           var hh = Math.max(0, h - gap);
           // free end rounded, baseline end square: the length datum stays a flat edge
-          var d = top ? (neg ? plumpBot(x, y, barW, hh, undefined, sw) : plumpTop(x, y, barW, hh, undefined, sw))
+          var d = top ? (neg ? plumpBot(x, y, barW, hh, styleOf(spec) === 'studio' ? 4 : undefined, sw) : plumpTop(x, y, barW, hh, styleOf(spec) === 'studio' ? 4 : undefined, sw))
                       : 'M' + x + ',' + y + ' h' + barW + ' v' + hh + ' h' + (-barW) + ' Z';
           if (cid && top && !neg && hh > 0) g.appendChild(sv('ellipse', { cx: x + barW / 2, cy: yZero + 1.4, rx: barW * 0.58, ry: 3.4, fill: 'url(#' + cid + ')' }));
           g.appendChild(sv('path', { class: 'ck-mark' + (ci === n - 1 ? ' ck-last' : '') + (neg ? ' ck-in' : ' ck-rise'), style: delay(ci * 50 + si * 30), d: d,
@@ -501,8 +533,52 @@
     draw();
   }
 
+  /* Studio ranking: the category and exact value share a ledger line, with the magnitude
+   * directly beneath. All rows use the same origin and scale; focus exposes the comparison. */
+  function renderLedger(ui, spec, width) {
+    var o = spec.options || {}, f = fOf(o), s = seriesOf(spec)[0], hl = o.highlight || [];
+    var items = spec.data.categories.map(function (name, i) { return { name: name, value: s.values[i], index: i }; });
+    var max = maxOf(items.map(function (it) { return it.value; }));
+    var total = sum(items.map(function (it) { return it.value; }));
+    var ref = o.reference === 'average' ? { value: total / items.length, label: L.average } : o.reference && typeof o.reference === 'object' ? o.reference : null;
+    var domain = Math.max(max, ref ? ref.value : 0) || 1;
+    var st = { sorted: o.sort !== false, table: false };
+    if (o.sortToggle) ui.controls.appendChild(segmented([{ label: L.sortByValue, value: true }, { label: L.original, value: false }], st.sorted, function (v) { st.sorted = v; draw(); }));
+    ui.controls.appendChild(toggleButton(L.table, false, function (v) { st.table = v; draw(); }));
+    function draw() {
+      clear(ui.body); ui.body.appendChild(ui.tip); ui.legend.style.display = 'none';
+      var list = st.sorted ? items.slice().sort(function (a,b) { return b.value-a.value; }) : items;
+      if (st.table) { ui.body.appendChild(tableView(['#', o.categoryLabel || L.category, s.name || L.value, L.share], list.map(function (it,i) { return [i+1,it.name,fmt(it.value,f),total ? (it.value/total*100).toFixed(1)+'%' : '—']; }))); return; }
+      var wrap = el('div', { class: 'ck-ledger' });
+      if (ref) wrap.appendChild(el('div', { class: 'ck-ledger-ref', text: (ref.label || L.baseline) + ' / ' + fmt(ref.value,f) }));
+      list.forEach(function (it,i) {
+        var active = hl.indexOf(it.name) !== -1;
+        var color = hl.length ? (active ? SERIES[0] : 'var(--ck-dim)') : ((spec.data.colors || [])[it.index] || s.color);
+        var row = el('div', { class: 'ck-ledger-row' + (active ? ' hl' : '') });
+        row.appendChild(el('div', { class: 'ck-ledger-head' }, [
+          el('span', { class: 'ck-ledger-index ck-num', text: (i+1 < 10 ? '0' : '')+(i+1) }),
+          el('span', { class: 'ck-ledger-name', text: it.name }),
+          el('strong', { class: 'ck-ledger-value ck-num', text: fmt(it.value,f) })
+        ]));
+        var track = el('div', { class: 'ck-ledger-track' }, el('div', { class: 'ck-ledger-fill ck-mark ck-grow', style: { width: (it.value/domain*100)+'%', background: color, animationDelay: i*55+'ms' } }));
+        if (ref) track.appendChild(el('i', { class: 'ck-ledger-target', style: { left: (ref.value/domain*100)+'%' } }));
+        row.appendChild(track);
+        hitEvents(row, function () {
+          var rows = [{name:s.name || L.value,value:fmt(it.value,f),color:color},{name:L.share,value:total ? (it.value/total*100).toFixed(1)+'%' : '—'}];
+          if (ref) rows.push({name:ref.label || L.baseline,value:(it.value-ref.value>0?'+':'')+fmt(it.value-ref.value,f)});
+          showTip(ui,it.name,rows,width-220,row.offsetTop+18,width-52);
+        },function(){hideTip(ui);});
+        wrap.appendChild(row);
+      });
+      ui.body.appendChild(wrap);
+    }
+    draw();
+  }
+
   /* ---------- RANKING (horizontal bars) ---------- */
   function renderRanking(ui, spec, width) {
+    if (styleOf(spec) === 'studio') return renderLedger(ui, spec, width);
+    if (styleOf(spec) === 'studio' && !(spec.options || {}).cast) return renderLedger(ui, spec, width);
     var o = spec.options || {}, f = fOf(o);
     var cats = spec.data.categories, s = seriesOf(spec)[0], hl = o.highlight || [];
     var items = cats.map(function (c, i) { return { name: c, value: s.values[i], hl: hl.indexOf(c) !== -1, color: hl.length ? (hl.indexOf(c) === -1 ? DIM : SERIES[0]) : ((spec.data.colors && spec.data.colors[i]) || s.color) }; });
@@ -557,13 +633,13 @@
     var o = spec.options || {}, f = fOf(o);
     var xs = spec.data.x, series = seriesOf(spec), n = xs.length, smooth = o.smooth !== false, hl = o.highlight || [];
     var st = { area: spec.type === 'area' || !!o.area, hidden: series.map(function () { return false; }), table: false, hover: -1 };
-    if (o.toggle !== false) ui.controls.appendChild(segmented([{ label: L.lineMode, value: false }, { label: L.areaMode, value: true }], st.area, function (v) { st.area = v; draw(); }));
+    if (o.toggle !== false && !o.difference) ui.controls.appendChild(segmented([{ label: L.lineMode, value: false }, { label: L.areaMode, value: true }], st.area, function (v) { st.area = v; draw(); }));
     ui.controls.appendChild(toggleButton(L.table, false, function (v) { st.table = v; draw(); }));
     var endLabels = o.endLabels !== false, markMax = o.markMax !== undefined ? o.markMax : series.length === 1;
     var castOn = !!o.cast;
     function castFor(name, i) { return castPick(ui.cast, name, i); }
     function castMood(s) { return s.dimmed ? 'flat' : 'up'; }
-    var endW = endLabels ? 14 + maxOf(series.map(function (s) { return textW(s.name, 11.5); }).concat(series.map(function (s) { return textW(fmt(s.values[n - 1], f), 11); }))) : 0;
+    var endW = endLabels ? (o.difference ? 64 : 14) + maxOf(series.map(function (s) { return textW(s.name, 11.5); }).concat(series.map(function (s) { return textW(fmt(s.values[n - 1], f), 11); }))) : 0;
     var padL = 52, padR = Math.max(12, endW), plotH = o.height || 240, plotW = width - 52 - padL - padR, labelH = 26, topPad = (o.annotations && o.annotations.length) ? 22 : (markMax ? 18 : 6);
     function visible() { return series.filter(function (s, i) { return !st.hidden[i]; }); }
     function draw() {
@@ -585,6 +661,14 @@
         g.appendChild(sv('line', { class: 'ck-anno-line', x1: x, x2: x, y1: -8, y2: plotH }));
         g.appendChild(sv('text', { class: 'ck-anno-text ck-halo', x: x + 6, y: -4, text: a.label }));
       });
+      if (o.difference && vis.length === 2) {
+        var upper = vis[0].values.map(function(v,i){return [xOf(i),yOf(v)];});
+        var lower = vis[1].values.map(function(v,i){return [xOf(i),yOf(v)];});
+        g.appendChild(sv('path', { class:'ck-difference ck-in', d:linePath(upper,smooth)+' L'+reverseLinePath(lower,smooth).slice(1)+' Z', fill:vis[0].color, 'fill-opacity':0.13 }));
+        var ya=yOf(vis[0].values[n-1]), yb=yOf(vis[1].values[n-1]), bx=plotW+7;
+        g.appendChild(sv('path', {class:'ck-gap-bracket',d:'M'+bx+','+ya+' h6 V'+yb+' h-6', fill:'none',stroke:'var(--ck-ink2)','stroke-width':1}));
+        if (Math.abs(ya-yb)>=56) g.appendChild(sv('text',{class:'ck-gap-value ck-num',x:bx+12,y:(ya+yb)/2+4,text:(vis[0].values[n-1]-vis[1].values[n-1]>0?'+':'')+fmt(vis[0].values[n-1]-vis[1].values[n-1],f)}));
+      }
       var ordered = vis.slice().sort(function (a, b) { return (a.dimmed ? 0 : 1) - (b.dimmed ? 0 : 1); });
       ordered.forEach(function (s) {
         var pts = s.values.map(function (v, i) { return [xOf(i), yOf(v)]; }), d = linePath(pts, smooth);
@@ -594,9 +678,9 @@
           g.appendChild(sv('path', { class: 'ck-mark ck-in', style: delay(500), d: d + ' L' + plotW.toFixed(1) + ',' + yZero.toFixed(1) + ' L0,' + yZero.toFixed(1) + ' Z', fill: 'url(#' + id + ')' }));
         }
         var si = series.indexOf(s), lead = !s.dimmed && (hl.length ? true : si === 0);
-        g.appendChild(sv('path', { class: 'ck-mark ck-draw', style: delay(si * 120), pathLength: 1, d: d, fill: 'none', stroke: s.color, 'stroke-width': lead ? GEO.stroke.lead : GEO.stroke.sub, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
+        g.appendChild(sv('path', { class: 'ck-mark ck-draw', style: delay(si * 120), pathLength: 1, d: d, fill: 'none', stroke: s.color, 'stroke-width': styleOf(spec) === 'studio' ? (lead ? 3.2 : 1.8) : (lead ? GEO.stroke.lead : GEO.stroke.sub), 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
         // the lead series carries a dot on every point (one dot = one period); the others stay as lines
-        if (lead && vis.length > 1 && n <= 40 && plotW / n >= 12) s.values.forEach(function (v, i) { g.appendChild(sv('circle', { class: 'ck-in', style: delay(700 + i * 20), cx: xOf(i), cy: yOf(v), r: 2.2, fill: s.color })); });
+        if ((styleOf(spec) === 'classic' || o.pointDots === true) && lead && vis.length > 1 && n <= 40 && plotW / n >= 12) s.values.forEach(function (v, i) { g.appendChild(sv('circle', { class: 'ck-in', style: delay(700 + i * 20), cx: xOf(i), cy: yOf(v), r: 2.2, fill: s.color })); });
         // the end token: a plain ring by default, the series' cast member when options.cast is on.
         // Either way its geometric centre sits ON the last datum — it REPLACES the dot, never joins it.
         var ex = xOf(n - 1), ey = yOf(s.values[n - 1]);
@@ -629,7 +713,9 @@
         st.hover = i; var x = xOf(i);
         cross.style.display = ''; vline.setAttribute('x1', x); vline.setAttribute('x2', x);
         dots.forEach(function (d, j) { d.setAttribute('cx', x); d.setAttribute('cy', yOf(vis[j].values[i])); });
-        showTip(ui, xs[i], vis.map(function (s) { return { name: s.name, color: s.color, value: fmt(s.values[i], f) }; }), padL + x, topPad + 4, width - 52);
+        var rows = vis.map(function (s) { return { name: s.name, color: s.color, value: fmt(s.values[i], f) }; });
+        if(o.difference && vis.length===2) rows.push({name:pickLang(spec)==='zh'?'差额（首项 − 次项）':'Difference (first − second)',value:fmt(vis[0].values[i]-vis[1].values[i],f),em:true});
+        showTip(ui, xs[i], rows, padL + x, topPad + 4, width - 52);
       }
       function hide() { st.hover = -1; cross.style.display = 'none'; hideTip(ui); }
       hit.addEventListener('mousemove', function (e) { var r = hit.getBoundingClientRect(); show(Math.max(0, Math.min(n - 1, Math.round((e.clientX - r.left) / r.width * (n - 1))))); });
@@ -959,7 +1045,7 @@
   }
   function renderKpi(container, spec, width) {
     var items = spec.data.items, cols = (spec.options && spec.options.columns) || Math.min(4, items.length);
-    var grid = el('div', { class: 'ck-kpis' + (motionOn(spec) ? ' ck-motion' : ''), style: { width: width + 'px', gridTemplateColumns: 'repeat(' + cols + ', minmax(0, 1fr))' } });
+    var grid = el('div', { class: 'ck-kpis' + (motionOn(spec) ? ' ck-motion' : ''), 'data-style': styleOf(spec), style: { width: width + 'px', gridTemplateColumns: 'repeat(' + cols + ', minmax(0, 1fr))' } });
     if (grid.classList.contains('ck-motion')) setTimeout(function () { grid.classList.remove('ck-motion'); }, 1800);
     var kcastOn = !!(spec.options && spec.options.cast);
     items.forEach(function (it, ti) {
@@ -1279,7 +1365,13 @@
     var fn = { bar: renderBar, line: renderLine, area: renderLine, candle: renderCandle, donut: renderDonut, scatter: renderScatter, heatmap: renderHeatmap, funnel: renderFunnel, table: renderTable,
       waffle: renderUnits, unit: renderUnits, dotmatrix: renderUnits, statuswall: renderUnits }[spec.type];
     if (!fn) ui.body.appendChild(el('div', { class: 'ck-empty', text: L.unknownType + spec.type }));
-    else fn(ui, spec, width);
+    else fn(ui, spec, featureOf(spec) ? width - 218 : width);
+    if (styleOf(spec) === 'studio') {
+      // Set once on a persistent body wrapper: chart redraws replace its children.
+      var viewport = el('div', { class: 'ck-viewport' });
+      ui.body.parentNode.insertBefore(viewport, ui.body); viewport.appendChild(ui.body);
+      ui.body.style.minWidth = (width - 52 - (featureOf(spec) ? 218 : 0)) + 'px';
+    }
     container.appendChild(ui.root);
     return ui.root;
   }

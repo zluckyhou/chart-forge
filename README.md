@@ -16,9 +16,11 @@ self-contained interactive page — validated colours, hover readouts, a table v
 
 </div>
 
+> **Studio / Signal is now the default.** Open frames, ledger rankings, a data-backed metric sidebar (`layout: feature`) and an optional two-series difference band. Run `python3 scripts/design_preview.py preview.html` for the current interactive design. The hero below shows the current design. The individual screenshot gallery retains the previous **Classic** look, available with `--style classic`.
+
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/gallery/hero-dark.png?v=0.2.1">
-  <img alt="Four charts: a line chart with end labels and an event annotation, a ranking with an average line, a heatmap with row and column marginals, and a comparison table with in-cell bars" src="assets/gallery/hero.png?v=0.2.1">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/gallery/studio-signal-dark.png">
+  <img alt="Studio Signal: revenue trend with a metric sidebar, exact difference band and direct labels" src="assets/gallery/studio-signal.png">
 </picture>
 <p align="center"><sub>Every image in this README was rendered by the skill from the specs in <code>assets/examples/</code>, light and dark from the same file.</sub></p>
 
@@ -133,7 +135,7 @@ every state ships a word as well as motion, so it holds under `prefers-reduced-m
 ## Why they read faster than a default chart
 
 - **The title is the finding.** "Analytics overtook Automation for second place" — not "ARR by product".
-  The metric name, period, unit and provenance go on one subtitle line. Two lines of header, never three.
+  The metric name, period, unit and provenance go on one subtitle line. Two typographic levels with natural wrapping; a hero trend can add a data-backed spotlight.
 - **Emphasis is a first-class option.** `highlight` promotes one entity and greys the rest, so a chart
   makes one point instead of offering eight colours and no argument.
 - **Direct labels beat lookups.** Line ends, peaks, the latest period and the top scatter points label
@@ -142,10 +144,10 @@ every state ships a word as well as motion, so it holds under `prefers-reduced-m
 - **No second y-axis, ever.** Two measures of different magnitude get two charts or a common index.
 - **Every chart has a table twin.** Hover enhances, it never gates: values stay reachable by keyboard,
   and by readers who cannot use hover at all.
-- **Editorial, not dashboard.** A rounded card with a hairline edge and no shadow on a warm plane, a
-  quiet toolbar (hidden until hover in the `publish` register), small-caps annotations and an optional
-  `source` line, and one entrance — bars rise, lines draw, slices fade in — after which the chart is
-  still. The palette and the forms are the same in both registers; only the chrome changes.
+- **Studio / Signal composition.** Open frames and precise rules, ledger rankings and optional metric
+  sidebars establish the hierarchy. A two-series difference band makes the gap readable directly.
+  `publish` hides the toolbar until hover, while `classic` preserves the previous rounded card style.
+  Motion is one entrance, then stillness. See [`references/design-language.md`](references/design-language.md).
 
 The full list of rules the output is held to — and the anti-patterns that fail review — is in
 [`references/rules.md`](references/rules.md); the "which form?" decision table is in

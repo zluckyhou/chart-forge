@@ -10,6 +10,7 @@ One spec is one chart. Common fields:
   "note": "A caveat or a reading hint (optional)",
   "source": "Provenance, printed as a small-caps line under the chart (optional)",
   "register": "analyse | publish",
+  "style": "studio | classic",
   "motion": true,
   "state": "load | stream | stale | refresh | error",
   "width": 720,
@@ -19,12 +20,40 @@ One spec is one chart. Common fields:
 }
 ```
 
-`title` + `subtitle` are the whole header — two lines, never three. (A legacy `eyebrow` is folded
+`title` + `subtitle` form two typographic levels; either may wrap naturally. (A legacy `eyebrow` is folded
 into the front of the subtitle rather than stacking a third line.)
 
 `register` picks how much chrome is in view: `analyse` (default) keeps the Table / mode toolbar visible,
 `publish` shows it only on hover and never in a PNG. `motion` (default true) is the one-time entrance —
 bars rise, lines draw, slices fade in — after which the chart is still; PNG export always renders still.
+
+`style` defaults to `studio`; `classic` preserves the previous geometry and card styling. The CLI
+`--style studio|classic` overrides the style for every spec on the page. For direct JS integration,
+`ChartKit.defaults.style` supplies the fallback. Neither style changes data values or domains.
+
+Optional top-level `spotlight` on **line / area only**:
+
+```json
+"spotlight": { "series": "Subscriptions", "label": "Latest monthly revenue", "compare": "previous" }
+```
+
+`series` must match exactly one series and its latest value must be finite. `label` is optional.
+The large value uses `options.format/currency/unit/decimals`; the date comes from the final `data.x`.
+`compare: "previous"` calculates `(latest - previous) / abs(previous) × 100`. It is omitted when the
+previous value is zero/missing. This is a relative change, not a percentage-point difference, and its
+colour is neutral because growth is not universally good. Omit `compare` to show just the value/date.
+The spotlight stays tied to its named series when the plot switches view or hides other series.
+`options.pointDots: true` opts into period dots in Studio; Classic keeps its earlier default.
+
+`layout: "feature"` places the spotlight next to the plot in Studio line/area charts at a spec
+width of at least 900 px. Narrow screens stack the metric above a scrollable plot. Without a spotlight,
+or at smaller spec widths, the ordinary vertical layout is retained.
+
+`options.difference: true` is for **exactly two complete finite line series measured in the same unit**.
+A translucent band follows the exact curves; it represents the distance between them, not uncertainty
+or cumulative volume. The latest signed gap is `first series − second series`; the hover readout gives
+that difference at every period. A compact bracket remains when the text would collide. The area-mode
+switch is omitted for this form. Explain the band in `note`, and do not use it to compare unlike units.
 
 `state` is the live condition of the data, and it is a *channel*, not decoration: the marks report it
 themselves instead of a skeleton overlay or a spinner. `load` dims the plot to a breathing placeholder and

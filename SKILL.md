@@ -1,29 +1,23 @@
 ---
 name: chart-forge
 description: >-
-  Draw the right chart from a dataset — a good-looking, interactive one. Decide what the chart has to
-  say, pick the form that says it fastest, write a small JSON spec, and render it with a zero-dependency
-  engine into a self-contained interactive HTML page (PNG optional). Ships a colourblind- and
-  contrast-validated palette, conclusion-style titles, end-of-line labels, event annotations, average
-  lines, funnel necks, heatmap marginals, in-cell table bars — across bar, ranking, line, area,
-  candlestick, donut, scatter, heatmap, funnel, KPI tiles and data tables, plus a unit family (waffle,
-  unit columns, dot matrix, status wall) where each mark is one counted thing and shape is a second
-  colourblind-safe channel. Every form shares one element layer, and marks can report live state
-  (loading, streaming, stale, refreshing, failed). Use when someone says "chart this", "plot this",
-  "visualise this data", "make a graph", "trend chart", "share breakdown", "funnel", "heatmap",
-  "KPI cards", "waffle chart", "unit chart", "pictogram", "isotype", "status wall", "a chart for the
-  report", "nicer than the default charts", 画个图 / 做张图表 / 可视化这份数据 / 趋势图 / 占比图 / 漏斗 /
-  热力图 / 指标卡 / 华夫图 / 单位图 / 点阵图 / 状态墙, or hands over a table, a CSV or a SQL result that
-  needs a picture.
+  Turn datasets, CSVs and query results into polished interactive charts and self-contained HTML,
+  with optional PNG export. Choose a truthful chart form, write a JSON spec and render with a
+  zero-dependency engine. Supports business charts, rankings, trends, heatmaps, funnels, KPI tiles,
+  tables and countable-unit displays; Studio and Classic styles, light/dark themes, tooltips and
+  exact table values. Use for charting, plotting, data visualization, 画图、图表美化、趋势、占比、排名、
+  热力图、漏斗、指标卡 and 可视化查询结果.
 ---
 
 # Chart Forge
 
 One chart = one `spec.json` → `scripts/render.py` → a self-contained interactive HTML file
 (zero dependencies; Google Fonts optional), plus a PNG when you need one.
-The look is editorial, not dashboard: a rounded white card with a hairline edge and a soft lift on a warm
-plane, a conclusion title, small-caps annotations and an optional source line, a quiet toolbar, and one
-entrance motion (bars rise, lines draw, slices fade in) after which the chart is still.
+The default look is **Studio**: open frames with precise rules, stronger title/number hierarchy, restrained
+surfaces, broad flat-ended bars, weighted lines and ledger-style rankings. Light is a clean
+research page; dark is a high-contrast instrument panel. `"style": "classic"` restores the preceding
+visual treatment. Read `references/design-language.md` when choosing visual emphasis or composing
+several charts. `scripts/design_preview.py` builds a runnable same-data comparison.
 Every form — including the ones whose marks never change shape — shares one **element layer**: one radius
 family, one end token, one stroke scale, one negative-space rule, elevation on containers only, one state
 vocabulary, one palette. That is what makes a candlestick and a waffle read as the same family.
@@ -41,12 +35,10 @@ The engine handles *drawing it correctly and making it look good*.
 ### 1. Decide the message, then the form
 
 Read `references/choosing-a-form.md`. Write the conclusion as one sentence — that sentence *is* the
-`title`. Then ask **what kind of quantity this is**, because it forks the whole form family:
-
-- **countable** (counts, shares, densities, discrete states) → the unit family, where one mark is one
-  thing and the reader counts objects instead of measuring an edge
-- **continuous** (prices, rates, anything with a meaningful decimal) → bar / line / area / candle /
-  heatmap. A continuous measure cannot be cut into marks, so it never joins the unit family.
+`title`. Choose the familiar form that makes the comparison easiest first. Countable data can use
+ordinary bars, lines or donuts; **countable does not automatically mean a unit chart**. Choose the unit
+family only when one-mark-one-thing helps the actual question (small counts, composition, discrete
+states). Continuous values stay with position, length or colour scales.
 
 Then pick `type` by the job:
 
@@ -65,12 +57,20 @@ second y-axis.
 Follow `references/spec.md`. Every type has a runnable example in `assets/examples/` — copying the
 closest one and swapping the data is the fastest path.
 
-Two lines of copy, never three: **`title`** is the conclusion, **`subtitle`** is the context
+Two levels of copy (allow natural wrapping): **`title`** is the conclusion, **`subtitle`** is the context
 (what is measured · period · unit · provenance). Add **`source`** when the data has a provenance worth
 printing — it becomes a small-caps line under the chart. Use `options.highlight` when the story is about
 one entity, `refLines` for a target, `annotations` for the event that explains a turn, and
 `reference: "average"` on a ranking. One device per chart: a highlight, an annotation *or* a reference
 line carries the story; the others, if present at all, stay quiet.
+
+For a hero trend chart, add `"spotlight": {"series": "exact series name", "compare": "previous"}`.
+Use `"layout": "feature"` at widths ≥ 900 px for a metric sidebar beside the plot.
+For a two-series trend about the gap itself, `options.difference: true` shades between the lines
+and exposes the exact difference in the hover readout.
+This spotlight prints the selected series' latest value and derives the change from the previous data point.
+It never invents a summary number; omit it on dense analysis charts and most secondary panels.
+`options.pointDots: true` restores individual period dots on Studio lead lines when useful.
 
 **Three style opt-ins, all off by default** — turn them on deliberately, not by habit:
 `options.finish: "soft"` adds the volumetric pass (lateral sheen + contact shadow, dosed by aspect ratio,
@@ -92,6 +92,7 @@ python3 scripts/render.py spec.json --validate                              # ty
 python3 scripts/render.py spec.json -o out/chart.html                       # self-contained HTML
 python3 scripts/render.py spec.json -o out/chart.html --png --theme light   # + PNG (needs Playwright)
 python3 scripts/render.py a.json b.json -o out/report.html                  # several charts, one page
+python3 scripts/render.py spec.json -o out/classic.html --style classic      # previous visual style
 python3 scripts/render.py spec.json -o out/chart.html --no-webfont          # offline / intranet
 python3 scripts/render.py spec.json -o out/chart.html --register publish    # toolbar only on hover, never in the PNG
 ```
